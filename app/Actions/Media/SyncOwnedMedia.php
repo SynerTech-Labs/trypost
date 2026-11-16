@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Actions\Media;
 
 use App\Dto\MediaItem;
+use App\Enums\SocialAccount\Platform;
 use App\Models\Idea;
 use App\Models\Media;
 use App\Models\Post;
 use App\Support\Media\MediaCopyBatch;
 use App\Support\ThreadReplies;
+use App\Support\YouTubeAssets;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -67,7 +69,12 @@ class SyncOwnedMedia
         $workspace = $owner->workspace;
         $items = self::withoutRepeats(array_values($items));
         $replies = $locked instanceof Post ? ThreadReplies::of($locked->meta) : [];
-        $submitted = [...$items, ...self::replyMedia($replies)];
+        $assets = [];
+
+        if ($locked instanceof Post && $locked->platform === Platform::YouTube) {
+            $assets = YouTubeAssets::references($locked->meta);
+        }
+        $submitted = [...$items, ...self::replyMedia($replies), ...array_values($assets)];
         $ids = self::column($submitted, 'id');
         $uploadTokens = self::column($submitted, 'upload_token');
         self::lockRows($workspace->id, $ownerColumn, $owner->getKey(), $ids, $uploadTokens);
@@ -122,12 +129,25 @@ class SyncOwnedMedia
                 'media' => $sync(self::withoutRepeats($reply['media']), "{$metaErrorKey}.thread_replies.{$index}.media"),
             ])
             ->all();
-        $kept = self::column([...$final, ...self::replyMedia($replies)], 'id');
+        $meta = $locked instanceof Post ? ($locked->meta ?? []) : [];
+
+        foreach ($assets as $path => $item) {
+            $canonical = $sync([$item], "{$metaErrorKey}.{$path}")[0];
+            YouTubeAssets::validate($canonical, $path, "{$metaErrorKey}.{$path}");
+            data_set($meta, $path, $canonical);
+            $assets[$path] = $canonical;
+        }
+
+        if ($replies !== []) {
+            $meta['thread_replies'] = $replies;
+        }
+
+        $kept = self::column([...$final, ...self::replyMedia($replies), ...array_values($assets)], 'id');
 
         DeleteOwnedMedia::forRows($owner->ownedMedia()->whereNotIn('id', $kept)->pluck('id')->all());
-        $owner->update($replies === [] ? ['media' => $final] : [
+        $owner->update(! $locked instanceof Post ? ['media' => $final] : [
             'media' => $final,
-            'meta' => [...($locked->meta ?? []), 'thread_replies' => $replies],
+            'meta' => $meta,
         ]);
 
         return $final;

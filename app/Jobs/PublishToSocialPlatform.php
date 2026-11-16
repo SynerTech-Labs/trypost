@@ -8,6 +8,7 @@ use App\Actions\Post\FinalizePostPublication;
 use App\Enums\GoogleBusiness\LocalPostState;
 use App\Enums\Media\Type as MediaType;
 use App\Enums\Post\PublishStatus;
+use App\Enums\PostPlatform\ContentType;
 use App\Enums\SocialAccount\Platform as SocialPlatform;
 use App\Enums\SocialAccount\Status;
 use App\Events\PostStatusUpdated;
@@ -178,6 +179,10 @@ class PublishToSocialPlatform implements ShouldBeUnique, ShouldQueue
 
         $this->updatePostStatus();
         $this->broadcastStatus();
+
+        if ($this->post->content_type === ContentType::YouTubeVideo && $this->post->publish_status === PublishStatus::Published) {
+            rescue(fn () => CompleteYouTubeVideo::dispatch($this->post)->delay(now()->addSeconds(15))->afterCommit());
+        }
     }
 
     /**
@@ -221,6 +226,7 @@ class PublishToSocialPlatform implements ShouldBeUnique, ShouldQueue
                 ->delay(now()->addSeconds(ResolveTikTokVideoId::FIRST_CHECK_AFTER_SECONDS))
                 ->afterCommit();
         }
+
     }
 
     private function refreshAccountToken(): void
@@ -263,6 +269,10 @@ class PublishToSocialPlatform implements ShouldBeUnique, ShouldQueue
     private function failForInvalidMedia(): bool
     {
         $context = $this->post->error_context;
+
+        if ($this->post->platform === SocialPlatform::YouTube && filled($this->post->platform_post_id)) {
+            return false;
+        }
 
         if ($this->post->scheduled_before_media_checks) {
             return false;

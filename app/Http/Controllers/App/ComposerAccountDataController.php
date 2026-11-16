@@ -6,6 +6,7 @@ namespace App\Http\Controllers\App;
 
 use App\Actions\Post\Queue\ListTakenSlots;
 use App\Actions\SocialAccount\ListPinterestBoards;
+use App\Actions\SocialAccount\ListYouTubePlaylists;
 use App\Enums\SocialAccount\Platform;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\App\Post\ListComposerTakenSlotsRequest;
@@ -21,6 +22,7 @@ class ComposerAccountDataController extends Controller
     public function show(ShowComposerAccountDataRequest $request, SocialAccount $account, TikTokCreatorInfo $tikTokCreatorInfo): ComposerAccountDataResource
     {
         return new ComposerAccountDataResource(match ($account->platform) {
+            Platform::YouTube => ['youtubePlaylists' => rescue(fn (): array => ListYouTubePlaylists::cached($account), null, report: false)],
             Platform::Pinterest => [
                 'pinterestBoards' => rescue(fn (): array => ListPinterestBoards::cached($account), ['boards' => [], 'truncated' => false], report: false),
             ],
@@ -36,5 +38,12 @@ class ComposerAccountDataController extends Controller
         $taken = ListTakenSlots::handle([$account->id], $request->date('from')->max(now()), $request->date('to'));
 
         return new ComposerTakenSlotsResource($taken[$account->id]);
+    }
+
+    public function youtubePlaylists(ShowComposerAccountDataRequest $request, SocialAccount $account): ComposerAccountDataResource
+    {
+        abort_unless($account->platform === Platform::YouTube, Response::HTTP_NOT_FOUND);
+
+        return new ComposerAccountDataResource(['youtubePlaylists' => ListYouTubePlaylists::cached($account)]);
     }
 }

@@ -19,6 +19,7 @@ class ComposerAccountDataResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
+            'youtubePlaylists' => $this->when(array_key_exists('youtubePlaylists', $this->resource), fn (): mixed => data_get($this->resource, 'youtubePlaylists')),
             'pinterestBoards' => $this->when(array_key_exists('pinterestBoards', $this->resource), fn (): mixed => data_get($this->resource, 'pinterestBoards')),
             'tiktokCreatorInfo' => $this->when(array_key_exists('tiktokCreatorInfo', $this->resource), fn (): mixed => data_get($this->resource, 'tiktokCreatorInfo')),
         ];

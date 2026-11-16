@@ -120,11 +120,13 @@ class HandleInertiaRequests extends Middleware
                         MediaType::Image->value => MediaType::Image->maxSizeInBytes(),
                         MediaType::Video->value => MediaType::Video->maxSizeInBytes(),
                         MediaType::Document->value => MediaType::Document->maxSizeInBytes(),
+                        MediaType::Subtitle->value => MediaType::Subtitle->maxSizeInBytes(),
                     ],
                     'extensions' => [
                         MediaType::Image->value => MediaType::Image->extensions(),
                         MediaType::Video->value => MediaType::Video->extensions(),
                         MediaType::Document->value => MediaType::Document->extensions(),
+                        MediaType::Subtitle->value => MediaType::Subtitle->extensions(),
                     ],
                     'upload_retention_hours' => (int) config('trypost.media.upload_retention_hours'),
                     'heic' => HeicConverter::available(),

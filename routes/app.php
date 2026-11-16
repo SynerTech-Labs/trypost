@@ -63,6 +63,7 @@ use App\Http\Controllers\App\WorkspaceCreationCheckController;
 use App\Http\Controllers\App\WorkspaceInviteController;
 use App\Http\Controllers\App\WorkspaceLabelController;
 use App\Http\Controllers\App\WorkspaceSignatureController;
+use App\Http\Controllers\App\YouTubeVideoExtrasController;
 use App\Http\Controllers\Auth\BlueskyController;
 use App\Http\Controllers\Auth\DiscordController;
 use App\Http\Controllers\Auth\FacebookController;
@@ -256,6 +257,7 @@ Route::middleware(['auth', EnsureAccountReady::class, EnsureHasWorkspace::class]
     Route::post('posts', [PostController::class, 'store'])->name('app.posts.store');
     Route::get('posts/{post}/edit', [PostController::class, 'edit'])->name('app.posts.edit');
     Route::put('posts/{post}', [PostController::class, 'update'])->name('app.posts.update');
+    Route::post('posts/{post}/youtube-extras', YouTubeVideoExtrasController::class)->name('app.posts.youtube-extras');
     Route::put('posts/{post}/schedule', [PostScheduleController::class, 'update'])->name('app.posts.schedule.update');
     Route::put('posts/{post}/approve', [PostApprovalController::class, 'approve'])->name('app.posts.approve');
     Route::put('posts/{post}/reject', [PostApprovalController::class, 'reject'])->name('app.posts.reject');

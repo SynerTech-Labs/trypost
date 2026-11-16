@@ -14,6 +14,7 @@ use App\Exceptions\Social\YouTubePublishException;
 use App\Models\Post;
 use App\Models\SocialAccount;
 use App\Services\Social\Concerns\HasSocialHttpClient;
+use App\Support\YouTubeAssets;
 use App\Support\YouTubeDescription;
 use App\Support\YouTubeMetadata;
 use Google\Client as GoogleClient;
@@ -39,6 +40,10 @@ class YouTubePublisher
         }
 
         $this->validateContentLength($post);
+
+        if ($post->content_type === ContentType::YouTubeVideo) {
+            YouTubeAssets::validateOwned($post);
+        }
 
         $metadataViolation = YouTubeMetadata::violation($post->meta);
 

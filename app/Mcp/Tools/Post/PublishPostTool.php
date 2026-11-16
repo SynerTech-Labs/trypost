@@ -6,12 +6,15 @@ namespace App\Mcp\Tools\Post;
 
 use App\Actions\Post\UpdatePost;
 use App\Enums\Post\Action as PostAction;
+use App\Enums\Post\PublishStatus;
 use App\Enums\Post\QueuePosition;
 use App\Enums\Post\Status;
 use App\Exceptions\Post\QueueBusyException;
 use App\Http\Resources\Api\PostResource;
+use App\Jobs\CompleteYouTubeVideo;
 use App\Mcp\Concerns\AuthorizesMcpTool;
 use App\Models\Post;
+use App\Services\Social\YouTubeVideoExtras;
 use App\Support\PostPlatformMetaRules;
 use App\Support\PostStatusRules;
 use App\Support\Requests\Post\PostRequestRules;
@@ -28,7 +31,7 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[IsReadOnly(false)]
 #[IsDestructive(true)]
 #[IsOpenWorld(true)]
-#[Description('Publish a post now, schedule it at a custom time (scheduled_at) or put it in the channel queue (queue). Works on drafts and on scheduled posts. Use update-post-tool first to change its content, content_type or meta. It is validated like a scheduled post: text limits, required meta, the media rules of its content_type (see list-content-types-tool) and thread replies; a failure names the platform and field, and nothing is published. Posts that are publishing, published or failed cannot be changed or deleted. When the acting member needs approval in this workspace, the post is stored with status pending_approval instead and waits for approve-post-tool. '.PostPlatformMetaRules::SCHEDULING_REQUIREMENTS)]
+#[Description('Publish a post now, schedule it at a custom time (scheduled_at) or put it in the channel queue (queue). Works on drafts and on scheduled posts. On a published youtube_video with unfinished optional uploads, this retries only its thumbnail, subtitles and playlists; it never uploads the video again. Use update-post-tool first to change its content, content_type or meta. It is validated like a scheduled post: text limits, required meta, the media rules of its content_type (see list-content-types-tool) and thread replies; a failure names the platform and field, and nothing is published. Posts that are publishing, published or failed cannot be changed or deleted. When the acting member needs approval in this workspace, the post is stored with status pending_approval instead and waits for approve-post-tool. '.PostPlatformMetaRules::SCHEDULING_REQUIREMENTS)]
 class PublishPostTool extends Tool
 {
     use AuthorizesMcpTool;
@@ -52,6 +55,20 @@ class PublishPostTool extends Tool
 
         if (! $post->hasChannel()) {
             return Response::error(__('posts.errors.no_social_account'));
+        }
+
+        if ($post->publish_status === PublishStatus::Published && app(YouTubeVideoExtras::class)->pending($post)) {
+            if (filled(data_get($validated, 'scheduled_at')) || filled(data_get($validated, 'queue'))) {
+                return Response::error(PostStatusRules::editBlockedMessage());
+            }
+
+            if ($denied = $this->denyUnlessCan($request, 'approvePosts', $post->workspace, 'Publishing requires workspace approval.')) {
+                return $denied;
+            }
+
+            CompleteYouTubeVideo::dispatch($post, retryFailed: true);
+
+            return Response::structured(['post_id' => $post->id, 'video_id' => $post->platform_post_id, 'extras_queued' => true]);
         }
 
         PostStatusRules::assertStoredPostPublishable($post);
