@@ -170,7 +170,7 @@ test('failed subtitle processing does not repeat its insert or block a thumbnail
 });
 
 test('a recovered uploaded identity is finalized and queues extras without another upload', function () {
-    Queue::fake([CompleteYouTubeVideo::class]);
+    Queue::fake();
     $post = youtubeExtrasPost();
     $post->writePublication(['publish_status' => PublishStatus::Publishing]);
     $post->update(['status' => Status::Publishing, 'meta' => ['youtube_playlists' => ['PL123']]]);
