@@ -134,6 +134,9 @@ test('going back to the list keeps the board as the view the user picked', funct
 
     $page->click('@schedule-view-board');
     waitFor($page, '@board-column-draft');
+    waitFor($page, '@board-column-empty-draft');
+    waitForGone($page, '[data-testid^="board-column-skeleton-"]');
+    waitForPath($page, route('app.posts.board', absolute: false));
 
     $page->back();
     waitForPath($page, route('app.posts.index', absolute: false));
