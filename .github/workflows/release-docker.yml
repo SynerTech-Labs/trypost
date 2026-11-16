@@ -65,6 +65,9 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             VITE_REVERB_APP_KEY=trypost-reverb-key
+            VITE_REVERB_HOST=trypost.synertech-labs.ch
+            VITE_REVERB_PORT=443
+            VITE_REVERB_SCHEME=https
           cache-from: type=gha,scope=${{ env.PLATFORM_PAIR }}
           cache-to: type=gha,mode=max,scope=${{ env.PLATFORM_PAIR }}
           outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
