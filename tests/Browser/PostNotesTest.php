@@ -179,6 +179,7 @@ test('hovering a mention shows who it is, yourself included: photo, name and the
     waitForOpen($page, "@post-notes-section-{$post->id}");
     waitForCount($page, '@note-mention', 4);
     waitForText($page, '@note-body', '@Ana Souza @Bia Lima @Caio Former @Paulo Castellano');
+    waitForWebFonts($page);
 
     $tokyoTimes = json_encode([now('Asia/Tokyo')->format('H:i'), now('Asia/Tokyo')->addMinute()->format('H:i')]);
 
@@ -189,20 +190,20 @@ test('hovering a mention shows who it is, yourself included: photo, name and the
     waitForText($page, '@note-mention-card-name', 'Ana Souza');
     waitForState($page, '@note-mention-card-time', "{$tokyoTimes}.some((time) => element.textContent.includes(time + ' local time'))");
 
-    $page->hover('@note-body');
+    $page->hover('@note-input');
     waitForGone($page, '@note-mention-card');
     $page->hover('[data-testid=note-mention]:nth-child(2)');
     waitForText($page, '@note-mention-card-name', 'Bia Lima');
     waitFor($page, '@note-mention-card-time');
     $page->assertMissing('@note-mention-card img');
 
-    $page->hover('@note-body');
+    $page->hover('@note-input');
     waitForGone($page, '@note-mention-card');
     $page->hover('[data-testid=note-mention]:nth-child(3)');
     waitForText($page, '@note-mention-card-name', 'Caio Former');
     $page->assertMissing('@note-mention-card-time');
 
-    $page->hover('@note-body');
+    $page->hover('@note-input');
     waitForGone($page, '@note-mention-card');
     $page->hover('[data-testid=note-mention]:nth-child(4)');
     waitForText($page, '@note-mention-card-name', 'Paulo Castellano');
@@ -851,11 +852,11 @@ test('notes open, grow, send, edit and fit the card on every tab, on desktop and
     $page->keys('@note-input', ['Shift+Enter']);
     waitFor($page, '@note-input br');
     $page->typeSlowly('@note-input', 'Second line', 10);
-    waitForEditorText($page, '@note-input', "First line\nSecond line");
+    $page->assertScript("document.querySelector('[data-testid=\"note-input\"]').innerText.trim()", "First line\nSecond line");
     $page->keys('@note-input', ['Shift+Enter']);
     waitForCount($page, '@note-input br', 2, '>=');
     $page->typeSlowly('@note-input', 'Third line', 10);
-    waitForEditorText($page, '@note-input', "First line\nSecond line\nThird line");
+    $page->assertScript("document.querySelector('[data-testid=\"note-input\"]').innerText.trim()", "First line\nSecond line\nThird line");
     $grown = $page->script("document.querySelector('[data-testid=\"note-input\"]').getBoundingClientRect().height");
     expect($grown)->toBeGreaterThan($singleLine)
         ->and($page->script("document.querySelector('[data-testid=\"note-composer\"]').getBoundingClientRect().height"))->toBeGreaterThanOrEqual($grown);

@@ -12,7 +12,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: synertech-labs/trypost
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build:
@@ -30,8 +30,10 @@ jobs:
       contents: read
       packages: write
     steps:
-      - name: Prepare platform slug
-        run: echo "PLATFORM_PAIR=${platform//\//-}" >> "$GITHUB_ENV"
+      - name: Prepare image name and platform slug
+        run: |
+          echo "IMAGE_NAME=${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+          echo "PLATFORM_PAIR=${platform//\//-}" >> "$GITHUB_ENV"
         env:
           platform: ${{ matrix.platform }}
 
@@ -94,6 +96,9 @@ jobs:
       contents: read
       packages: write
     steps:
+      - name: Prepare image name
+        run: echo "IMAGE_NAME=${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+
       - name: Download digests
         uses: actions/download-artifact@v7
         with:
