@@ -216,12 +216,13 @@ test('abandoned chunk files past the upload retention are pruned and fresh ones 
     $fresh = ChunkedAssetReceiver::chunkDirectory().'/'.Str::uuid();
     File::put($stale, 'old');
     File::put($fresh, 'new');
+    Storage::disk('local')->assertExists(['chunks/'.basename($stale), 'chunks/'.basename($fresh)]);
     $future = now()->addYear();
     touch($fresh, $future->getTimestamp());
     touch($stale, $future->copy()->subHours((int) config('trypost.media.upload_retention_hours') + 1)->getTimestamp());
 
     try {
-        expect(data_get(PruneTemporaryUploads::execute($future, dryRun: true), 'chunks'))->toBeGreaterThanOrEqual(1)
+        expect(data_get(PruneTemporaryUploads::execute($future, dryRun: true), 'chunks'))->toBe(1)
             ->and(File::exists($stale))->toBeTrue();
 
         PruneTemporaryUploads::execute($future);

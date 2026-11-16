@@ -190,20 +190,20 @@ test('hovering a mention shows who it is, yourself included: photo, name and the
     waitForText($page, '@note-mention-card-name', 'Ana Souza');
     waitForState($page, '@note-mention-card-time', "{$tokyoTimes}.some((time) => element.textContent.includes(time + ' local time'))");
 
-    $page->hover('@note-input');
+    $page->click('@note-input');
     waitForGone($page, '@note-mention-card');
     $page->hover('[data-testid=note-mention]:nth-child(2)');
     waitForText($page, '@note-mention-card-name', 'Bia Lima');
     waitFor($page, '@note-mention-card-time');
     $page->assertMissing('@note-mention-card img');
 
-    $page->hover('@note-input');
+    $page->click('@note-input');
     waitForGone($page, '@note-mention-card');
     $page->hover('[data-testid=note-mention]:nth-child(3)');
     waitForText($page, '@note-mention-card-name', 'Caio Former');
     $page->assertMissing('@note-mention-card-time');
 
-    $page->hover('@note-input');
+    $page->click('@note-input');
     waitForGone($page, '@note-mention-card');
     $page->hover('[data-testid=note-mention]:nth-child(4)');
     waitForText($page, '@note-mention-card-name', 'Paulo Castellano');
@@ -849,7 +849,7 @@ test('notes open, grow, send, edit and fit the card on every tab, on desktop and
     $singleLine = $page->script("document.querySelector('[data-testid=\"note-input\"]').getBoundingClientRect().height");
     $page->fill('@note-input', 'First line');
     waitForEditorText($page, '@note-input', 'First line');
-    $page->keys('@note-input', ['Shift+Enter']);
+    $page->keys('@note-input', ['ControlOrMeta+End', 'Shift+Enter']);
     waitFor($page, '@note-input br');
     $page->typeSlowly('@note-input', 'Second line', 10);
     $page->assertScript("document.querySelector('[data-testid=\"note-input\"]').innerText.trim()", "First line\nSecond line");
