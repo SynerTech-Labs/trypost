@@ -15,6 +15,7 @@ use App\Http\Resources\App\ComposerAccountDataResource;
 use App\Http\Resources\App\ComposerTakenSlotsResource;
 use App\Models\SocialAccount;
 use App\Services\Social\TikTokCreatorInfo;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class ComposerAccountDataController extends Controller
@@ -40,8 +41,10 @@ class ComposerAccountDataController extends Controller
         return new ComposerTakenSlotsResource($taken[$account->id]);
     }
 
-    public function youtubePlaylists(ShowComposerAccountDataRequest $request, SocialAccount $account): ComposerAccountDataResource
+    public function youtubePlaylists(Request $request, SocialAccount $account): ComposerAccountDataResource
     {
+        $this->authorize('view', $account);
+        $this->authorize('createPost', $account->workspace);
         abort_unless($account->platform === Platform::YouTube, Response::HTTP_NOT_FOUND);
 
         return new ComposerAccountDataResource(['youtubePlaylists' => ListYouTubePlaylists::cached($account)]);

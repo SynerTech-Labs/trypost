@@ -86,7 +86,8 @@ test('MCP and REST support a long video with auxiliary uploads scheduling and sa
 });
 
 test('MCP playlist discovery paginates filters other channels and hides another workspace', function () {
-    ['user' => $user, 'workspace' => $workspace] = parityContext();
+    Queue::fake();
+    ['user' => $user, 'workspace' => $workspace, 'token' => $token] = parityContext();
     $account = SocialAccount::factory()->youtube()->create(['workspace_id' => $workspace->id, 'token_expires_at' => now()->addDay()]);
     Http::fake([config('trypost.platforms.youtube.data_api').'/playlists*' => Http::sequence()
         ->push(['items' => [
@@ -99,7 +100,11 @@ test('MCP playlist discovery paginates filters other channels and hides another 
     TryPostServer::actingAs($user)->tool(ListYouTubePlaylistsTool::class, ['account_id' => $account->id])->assertOk()
         ->assertStructuredContent(fn (AssertableJson $json) => $json->has('playlists', 2)->where('playlists.0.id', 'PL123')->where('playlists.1.id', 'PL456')->where('truncated', false));
     Http::assertSentCount(2);
+    $this->withHeaders(parityApi($token))->getJson(route('api.youtube.playlists', $account))->assertOk()
+        ->assertJsonPath('youtubePlaylists.playlists.0.id', 'PL123');
     $foreign = SocialAccount::factory()->youtube()->create();
     TryPostServer::actingAs($user)->tool(ListYouTubePlaylistsTool::class, ['account_id' => $foreign->id])->assertHasErrors(['YouTube account not found.']);
+    auth()->forgetGuards();
+    $this->withHeaders(parityApi($token))->getJson(route('api.youtube.playlists', $foreign))->assertNotFound();
     Http::assertSentCount(2);
 });

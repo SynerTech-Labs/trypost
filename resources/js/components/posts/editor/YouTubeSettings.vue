@@ -5,6 +5,7 @@ import CharacterCounter from '@/components/CharacterCounter.vue';
 import InputError from '@/components/InputError.vue';
 import SettingsRow from '@/components/posts/editor/SettingsRow.vue';
 import SettingsSection from '@/components/posts/editor/SettingsSection.vue';
+import YouTubeVideoOptions from '@/components/posts/editor/YouTubeVideoOptions.vue';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import {
@@ -22,6 +23,7 @@ import {
     YOUTUBE_DESCRIPTION_MAX_BYTES,
     youtubeDescriptionBytes,
 } from '@/lib/youtubeDescription';
+import { ContentType } from '@/types/content-type';
 import {
     YOUTUBE_TITLE_MAX,
     YouTubeLicense,
@@ -34,6 +36,8 @@ interface CategoryOption {
 }
 
 interface Props {
+    accountId?: string;
+    contentType?: string;
     platformIndex: number;
     publishConfig: {
         categoryOptions?: CategoryOption[];
@@ -50,7 +54,20 @@ const props = withDefaults(defineProps<Props>(), {
 });
 const emit = defineEmits<{
     'update:meta': [value: Record<string, unknown>];
+    busy: [value: boolean];
 }>();
+const isLongForm = computed(
+    () => props.contentType === ContentType.YouTubeVideo,
+);
+const updateVideoMeta = (meta: Record<string, unknown>): void =>
+    emit('update:meta', meta);
+const setBusy = (busy: boolean): void => emit('busy', busy);
+const accountId = computed(() => {
+    if (props.accountId) {
+        return props.accountId;
+    }
+    return '';
+});
 
 const metaError = useMetaErrors(() => props.platformIndex);
 const descriptionId = computed(
@@ -340,5 +357,14 @@ const hasDescriptionError = computed(
                 "
             />
         </SettingsRow>
+        <YouTubeVideoOptions
+            v-if="isLongForm"
+            :account-id="accountId"
+            :platform-index="platformIndex"
+            :meta="meta"
+            :disabled="disabled"
+            @update:meta="updateVideoMeta"
+            @busy="setBusy"
+        />
     </SettingsSection>
 </template>

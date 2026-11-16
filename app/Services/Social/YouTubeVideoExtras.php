@@ -131,10 +131,14 @@ class YouTubeVideoExtras
     {
         $meta = $post->meta ?? [];
 
-        foreach ($meta['youtube_operations'] ?? [] as $key => $state) {
-            if ($state['status'] === 'pending') {
-                $meta['youtube_operations'][$key] = [...$state, 'status' => 'failed', 'error' => __('posts.form.youtube.operation_failed')];
+        foreach ($this->operations($post) as $key => $operation) {
+            $state = $meta['youtube_operations'][$key] ?? ['kind' => $operation['kind'], 'label' => $operation['label'], 'status' => 'pending'];
+
+            if (in_array($state['status'], ['completed', 'failed'], true)) {
+                continue;
             }
+
+            $meta['youtube_operations'][$key] = [...$state, 'status' => 'failed', 'error' => __('posts.form.youtube.operation_failed')];
         }
 
         $post->update(['meta' => $meta]);

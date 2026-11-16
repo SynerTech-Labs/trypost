@@ -57,6 +57,7 @@ const MEDIA_FEATURE_KEYS: Record<MediaType, string> = {
     [MediaType.Image]: 'channels.details.features.image',
     [MediaType.Video]: 'channels.details.features.video',
     [MediaType.Document]: 'channels.details.features.document',
+    [MediaType.Subtitle]: 'posts.form.youtube.subtitles',
 };
 
 const value = computed(() => props.platform.value);

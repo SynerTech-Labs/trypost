@@ -48,5 +48,11 @@
     { "path": "https://cdn.example.com/medias/clip.mov?X-Amz-Signature=abc#frag" },
     { "path": "https://cdn.example.com/medias/photo.jpg?download=1" },
     { "original_filename": "clip.mp4", "path": "medias/photo.jpg" },
-    {}
+    {},
+    {"original_filename": "captions.srt"},
+    {"original_filename": "captions.vtt"},
+    {"mime_type": "application/x-subrip"},
+    {"mime_type": "application/x-srt"},
+    {"mime_type": "text/vtt"},
+    {"type": "subtitle", "mime_type": "text/plain", "original_filename": "captions.srt"}
 ]

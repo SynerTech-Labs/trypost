@@ -21,6 +21,7 @@ import PostMetricsBand from '@/components/publish/PostMetricsBand.vue';
 import PostPollResults from '@/components/publish/PostPollResults.vue';
 import PostPollResultsList from '@/components/publish/PostPollResultsList.vue';
 import PostStatusBadge from '@/components/publish/PostStatusBadge.vue';
+import YouTubeVideoStatus from '@/components/publish/YouTubeVideoStatus.vue';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -52,6 +53,7 @@ import { postThreadOf } from '@/lib/postThread';
 import { compactPublicationMetrics } from '@/lib/publicationMetrics';
 import { isRecurring } from '@/lib/recurrence';
 import { postPollResults } from '@/lib/xPoll';
+import { ContentType } from '@/types/content-type';
 import type { MediaItem } from '@/types/media';
 import { Platform } from '@/types/platform';
 import { PostOrigin, PostStatus } from '@/types/post';
@@ -193,6 +195,27 @@ const moment = computed(() => {
 
 const content = computed(() => current.value.content?.trim() ?? '');
 const media = computed<MediaItem[]>(() => current.value.media ?? []);
+const youtubeMeta = computed(() => {
+    if (filled(current.value.meta)) {
+        return current.value.meta;
+    }
+    return {};
+});
+const showsYouTubeExtras = computed(() => {
+    if (current.value.content_type !== ContentType.YouTubeVideo) {
+        return false;
+    }
+    if (current.value.status !== PostStatus.Published) {
+        return false;
+    }
+    if (filled(youtubeMeta.value.youtube_thumbnail)) {
+        return true;
+    }
+    if (filled(youtubeMeta.value.youtube_captions)) {
+        return true;
+    }
+    return filled(youtubeMeta.value.youtube_playlists);
+});
 
 const textElement = ref<HTMLElement | null>(null);
 const textExpanded = ref(false);
@@ -466,6 +489,7 @@ const siblingMoment = (sibling: PostCard): string | null => {
                         :test-key="currentKey"
                         @open="openMediaPreview(media, $event)"
                     />
+                    <YouTubeVideoStatus v-if="showsYouTubeExtras" :post-id="current.id" :meta="youtubeMeta" :can-retry="canPublishDirectly" />
                     </template>
 
 

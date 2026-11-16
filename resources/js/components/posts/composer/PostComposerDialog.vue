@@ -818,9 +818,20 @@ const activeUploaders = computed(() => [
     }),
     ...replyUploaders.values(),
 ]);
-const mediaUploading = computed(() =>
-    activeUploaders.value.some((uploader) => uploader.busy.value),
-);
+const auxiliaryUploads = shallowReactive(new Set<string>());
+const setAuxiliaryUploading = (accountId: string, busy: boolean): void => {
+    if (busy) {
+        auxiliaryUploads.add(accountId);
+        return;
+    }
+    auxiliaryUploads.delete(accountId);
+};
+const mediaUploading = computed(() => {
+    if (auxiliaryUploads.size > 0) {
+        return true;
+    }
+    return activeUploaders.value.some((uploader) => uploader.busy.value);
+});
 const mediaFailed = computed(() =>
     activeUploaders.value.some((uploader) => uploader.failed.value),
 );
@@ -3225,6 +3236,7 @@ const onDialogOpenChange = (value: boolean): void => {
                                             </p>
                                             <ComposerNetworkSettings
                                                 :account="account"
+                                                @busy="setAuxiliaryUploading(account.id, $event)"
                                                 :destination="
                                                     composition.resolvedDestination(
                                                         account,
@@ -3260,6 +3272,7 @@ const onDialogOpenChange = (value: boolean): void => {
                                     <ComposerNetworkSettings
                                         v-else
                                         :account="group.anchor"
+                                        @busy="setAuxiliaryUploading(group.anchor.id, $event)"
                                         :destination="groupDestination(group)"
                                         :platform-index="
                                             selectedAccounts.indexOf(group.anchor)

@@ -232,3 +232,14 @@ test('manual retry can replace a failed caption while permanent failures are not
     Http::assertSent(fn (Request $request) => $request->method() === 'DELETE' && str_contains($request->url(), 'id=failed-track'));
     expect($post->fresh()->platform_post_id)->toBe('video-123');
 });
+
+test('an exhausted optional job records unfinished operations without failing the video', function () {
+    $post = youtubeExtrasPost();
+    $post->update(['meta' => ['youtube_playlists' => ['PL123']]]);
+
+    (new CompleteYouTubeVideo($post))->failed(new RuntimeException('Worker stopped'));
+
+    expect(data_get($post->fresh()->meta, 'youtube_operations.playlist_PL123.status'))->toBe('failed');
+    expect($post->platform_post_id)->toBe('video-123');
+    expect($post->publish_status)->toBe(PublishStatus::Published);
+});

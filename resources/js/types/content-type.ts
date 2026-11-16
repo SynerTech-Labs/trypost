@@ -11,6 +11,7 @@ export const ContentType = {
     TikTokVideo: 'tiktok_video',
     TikTokPhoto: 'tiktok_photo',
     YouTubeShort: 'youtube_short',
+    YouTubeVideo: 'youtube_video',
     XPost: 'x_post',
     XPoll: 'x_poll',
     ThreadsPost: 'threads_post',

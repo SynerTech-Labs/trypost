@@ -8,6 +8,7 @@ export const MediaType = {
     Image: 'image',
     Video: 'video',
     Document: 'document',
+    Subtitle: 'subtitle',
 } as const;
 
 export type MediaType = (typeof MediaType)[keyof typeof MediaType];
@@ -17,6 +18,7 @@ export const ALLOWED_MIME_TYPES: Record<MediaType, readonly string[]> = {
     [MediaType.Image]: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
     [MediaType.Video]: ['video/mp4', 'video/quicktime'],
     [MediaType.Document]: ['application/pdf'],
+    [MediaType.Subtitle]: ['application/x-subrip', 'application/x-srt', 'text/vtt'],
 };
 
 /** HEIC/HEIF is accepted only while the server can convert it (`mediaUploadLimits.heic`). */
@@ -38,6 +40,7 @@ const CLASSIFIABLE_EXTENSIONS: Record<MediaType, readonly string[]> = {
     [MediaType.Image]: ['jpg', 'jpeg', 'jfif', 'png', 'gif', 'webp', 'avif', 'bmp', 'tif', 'tiff', 'svg', 'psd', 'heic', 'heif'],
     [MediaType.Video]: ['mp4', 'm4v', 'mov', 'avi', 'wmv', 'webm', 'mkv', 'mpeg', 'mpg', '3gp', 'flv', 'ogv'],
     [MediaType.Document]: ['pdf'],
+    [MediaType.Subtitle]: ['srt', 'vtt'],
 };
 
 /**
@@ -67,12 +70,24 @@ const hasExtension = (path: string, extensions: readonly string[]): boolean =>
 const normalizeMime = (mime: string | null | undefined): string => (mime ?? '').split(';')[0].trim().toLowerCase();
 
 /** Image and video own their MIME family (`image/*`, `video/*`); Document is `application/pdf` alone. */
-const ownsMime = (type: MediaType, mime: string): boolean =>
-    type === MediaType.Document ? mime === PDF_MIME : mime.startsWith(`${type}/`);
+const ownsMime = (type: MediaType, mime: string): boolean => {
+    if (type === MediaType.Document) {
+        return mime === PDF_MIME;
+    }
+    if (type === MediaType.Subtitle) {
+        return ALLOWED_MIME_TYPES[MediaType.Subtitle].includes(mime);
+    }
+    return mime.startsWith(`${type}/`);
+};
 
 /** The `accept` attribute value for a file input that takes any media we allow. */
-export const acceptAttribute = (heic: boolean = false): string =>
-    [...Object.values(ALLOWED_MIME_TYPES).flat(), ...(heic ? [...HEIC_MIME_TYPES, ...HEIC_EXTENSIONS.map((extension) => `.${extension}`)] : [])].join(',');
+export const acceptAttribute = (heic: boolean = false): string => {
+    const types = [...ALLOWED_MIME_TYPES[MediaType.Image], ...ALLOWED_MIME_TYPES[MediaType.Video], ...ALLOWED_MIME_TYPES[MediaType.Document]];
+    if (heic) {
+        types.push(...HEIC_MIME_TYPES, ...HEIC_EXTENSIONS.map((extension) => `.${extension}`));
+    }
+    return types.join(',');
+};
 
 /** Whether a browser `File` (or name + MIME) is HEIC/HEIF, by MIME or extension. */
 export const isHeic = (file: { name?: string | null; type?: string | null } | null | undefined): boolean =>
@@ -138,11 +153,11 @@ export const isMov = (item: ClassifiableMedia | null | undefined): boolean =>
  */
 export const uploadTypeOf = (
     file: { name: string },
-    extensions: Record<MediaType, readonly string[]>,
+    extensions: Partial<Record<MediaType, readonly string[]>>,
 ): MediaType | null => {
     const path = pathOf(file.name);
 
-    return MEDIA_TYPES.find((type) => hasExtension(path, extensions[type])) ?? null;
+    return MEDIA_TYPES.find((type) => hasExtension(path, extensions[type] ?? [])) ?? null;
 };
 
 /** What identifies a media item in a list: its upload token until it is hosted, then its id. */

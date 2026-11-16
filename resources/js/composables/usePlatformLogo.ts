@@ -47,7 +47,7 @@ const PLATFORM_CONTENT_TYPES: Record<string, string[]> = {
     'linkedin-page': ['linkedin_page_post'],
     facebook: ['facebook_post', 'facebook_reel', 'facebook_story'],
     tiktok: ['tiktok_video', 'tiktok_photo'],
-    youtube: ['youtube_short'],
+    youtube: ['youtube_short', 'youtube_video'],
     x: ['x_post', 'x_poll'],
     threads: ['threads_post', 'threads_ghost_post'],
     pinterest: ['pinterest_pin', 'pinterest_video_pin', 'pinterest_carousel'],
@@ -59,6 +59,7 @@ const PLATFORM_CONTENT_TYPES: Record<string, string[]> = {
 };
 
 const PLATFORM_CONTENT_TYPE_BADGES: Record<string, string[]> = {
+    youtube: ['youtube_short', 'youtube_video'],
     instagram: ['instagram_reel', 'instagram_story'],
     'instagram-facebook': ['instagram_reel', 'instagram_story'],
     facebook: ['facebook_reel', 'facebook_story'],

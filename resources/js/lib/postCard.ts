@@ -1,6 +1,7 @@
 import { getPlatformLabel } from '@/composables/usePlatformLogo';
 import { filled } from '@/lib/helpers';
 import { isImage, isVideo } from '@/lib/mediaType';
+import { ContentType } from '@/types/content-type';
 import type { MediaItem } from '@/types/media';
 import { PostStatus } from '@/types/post';
 import type { PostCard } from '@/types/publish';
@@ -55,6 +56,13 @@ export const postNoTimeKey = (post: PostCard): string => {
 
 /** The first image or video of the post, shown as the card's thumbnail. */
 export const postThumbnail = (post: PostCard): MediaItem | null => {
+    if (post.content_type === ContentType.YouTubeVideo) {
+        const cover = post.meta?.youtube_thumbnail;
+        if (filled(cover)) {
+            return cover as MediaItem;
+        }
+    }
+
     const thumbnail = post.media?.find((item) => isImage(item) || isVideo(item));
 
     if (!filled(thumbnail)) {
