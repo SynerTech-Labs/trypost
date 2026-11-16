@@ -57,7 +57,7 @@ class SyncTryPostPublication
             ContentType::InstagramReel, ContentType::FacebookReel => PublicationContentType::Reel,
             ContentType::InstagramStory, ContentType::FacebookStory => PublicationContentType::Story,
             ContentType::YouTubeShort => PublicationContentType::Short,
-            ContentType::TikTokVideo, ContentType::PinterestVideoPin => PublicationContentType::Video,
+            ContentType::TikTokVideo, ContentType::PinterestVideoPin, ContentType::YouTubeVideo => PublicationContentType::Video,
             ContentType::TikTokPhoto, ContentType::PinterestCarousel => PublicationContentType::Carousel,
             ContentType::XPoll => PublicationContentType::Poll,
             default => null,

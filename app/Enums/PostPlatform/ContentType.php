@@ -40,6 +40,7 @@ enum ContentType: string
 
     // YouTube
     case YouTubeShort = 'youtube_short';
+    case YouTubeVideo = 'youtube_video';
 
     // X (Twitter)
     case XPost = 'x_post';
@@ -98,6 +99,7 @@ enum ContentType: string
             self::TikTokVideo => 'Video',
             self::TikTokPhoto => 'Photo carousel',
             self::YouTubeShort => 'Short',
+            self::YouTubeVideo => 'Video',
             self::XPost => 'Post',
             self::XPoll => 'Poll',
             self::ThreadsPost => 'Thread',
@@ -131,7 +133,7 @@ enum ContentType: string
             self::LinkedInPagePost => SocialPlatform::LinkedInPage,
             self::FacebookPost, self::FacebookReel, self::FacebookStory => SocialPlatform::Facebook,
             self::TikTokVideo, self::TikTokPhoto => SocialPlatform::TikTok,
-            self::YouTubeShort => SocialPlatform::YouTube,
+            self::YouTubeShort, self::YouTubeVideo => SocialPlatform::YouTube,
             self::XPost, self::XPoll => SocialPlatform::X,
             self::ThreadsPost, self::ThreadsGhostPost => SocialPlatform::Threads,
             self::PinterestPin, self::PinterestVideoPin, self::PinterestCarousel => SocialPlatform::Pinterest,
@@ -182,6 +184,7 @@ enum ContentType: string
             self::InstagramReel, self::InstagramStory => '9:16',
             self::FacebookReel, self::FacebookStory => '9:16',
             self::TikTokVideo, self::YouTubeShort => '9:16',
+            self::YouTubeVideo => '16:9',
             self::TikTokPhoto => '1:1',
             self::PinterestPin, self::PinterestCarousel => '2:3',
             self::PinterestVideoPin => '9:16',
@@ -222,7 +225,7 @@ enum ContentType: string
             self::FacebookReel, self::FacebookStory => 1,
             self::TikTokVideo => 1,
             self::TikTokPhoto => 35,
-            self::YouTubeShort => 1,
+            self::YouTubeShort, self::YouTubeVideo => 1,
             self::XPost => 4,
             self::XPoll => 0,
             self::ThreadsPost => 10,
@@ -257,6 +260,7 @@ enum ContentType: string
             self::FacebookStory => 60,
             self::LinkedInPost, self::LinkedInPagePost => 10 * 60,
             self::YouTubeShort => 3 * 60,
+            self::YouTubeVideo => 12 * 60 * 60,
             self::PinterestVideoPin => 15 * 60,
             self::XPost => 20 * 60,
             self::ThreadsPost => 5 * 60,
@@ -345,7 +349,7 @@ enum ContentType: string
             self::FacebookPost => self::bytesFromGb(10),
             self::FacebookReel, self::FacebookStory => self::bytesFromGb(1),
             self::LinkedInPost, self::LinkedInPagePost => self::bytesFromGb(5),
-            self::YouTubeShort => self::bytesFromGb(256),
+            self::YouTubeShort, self::YouTubeVideo => self::bytesFromGb(256),
             self::PinterestVideoPin => self::bytesFromGb(2),
             self::XPost => self::bytesFromGb(8),
             self::ThreadsPost => self::bytesFromGb(1),
@@ -484,6 +488,7 @@ enum ContentType: string
             self::InstagramFeed => ['3:4', '4:5', '1:1', '1.91:1'],
             self::InstagramStory, self::InstagramReel, self::FacebookStory, self::FacebookReel,
             self::TikTokVideo, self::YouTubeShort => ['9:16'],
+            self::YouTubeVideo => ['16:9'],
             self::XPost, self::XPoll => ['1:1', '4:3', '16:9', '2:1'],
             self::TikTokPhoto => ['4:3', '16:9', '9:16', '1:1'],
             self::FacebookPost, self::LinkedInPost, self::LinkedInPagePost => ['1:1', '1.91:1'],
@@ -741,7 +746,7 @@ enum ContentType: string
             self::FacebookPost, self::FacebookReel, self::FacebookStory => true,
             self::TikTokVideo => true,
             self::TikTokPhoto => false,
-            self::YouTubeShort => true,
+            self::YouTubeShort, self::YouTubeVideo => true,
             self::XPost => true,
             self::XPoll => false,
             self::ThreadsPost => true,
@@ -763,7 +768,7 @@ enum ContentType: string
             self::FacebookReel => false,
             self::TikTokVideo => false,
             self::TikTokPhoto => true,
-            self::YouTubeShort => false,
+            self::YouTubeShort, self::YouTubeVideo => false,
             self::ThreadsGhostPost => false,
             self::XPoll => false,
             self::PinterestVideoPin => false,
@@ -969,6 +974,10 @@ enum ContentType: string
             SocialPlatform::TikTok => match ($type) {
                 PublicationContentType::Image, PublicationContentType::Carousel => self::TikTokPhoto,
                 default => self::TikTokVideo,
+            },
+            SocialPlatform::YouTube => match ($type) {
+                PublicationContentType::Video => self::YouTubeVideo,
+                default => self::YouTubeShort,
             },
             SocialPlatform::Pinterest => match ($type) {
                 PublicationContentType::Video => self::PinterestVideoPin,

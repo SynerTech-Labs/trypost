@@ -12,6 +12,7 @@ use App\Enums\SocialAccount\Platform;
 function specializedPublicationTypes(): array
 {
     return [
+        'youtube video' => [Platform::YouTube, PublicationContentType::Video, ContentType::YouTubeVideo],
         'instagram reel' => [Platform::Instagram, PublicationContentType::Reel, ContentType::InstagramReel],
         'instagram story' => [Platform::Instagram, PublicationContentType::Story, ContentType::InstagramStory],
         'instagram via facebook reel' => [Platform::InstagramFacebook, PublicationContentType::Reel, ContentType::InstagramReel],
