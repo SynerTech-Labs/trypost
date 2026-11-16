@@ -22,7 +22,7 @@ final class ChunkedAssetReceiver
 
     public static function chunkDirectory(): string
     {
-        return storage_path('app/private/chunks');
+        return Storage::disk('local')->path('chunks');
     }
 
     public function receive(

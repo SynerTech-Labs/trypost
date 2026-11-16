@@ -15,6 +15,13 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
+function fillPostNoteEditor(mixed $page, string $text): void
+{
+    $page->fill('@note-input', $text);
+    waitForEditorText($page, '@note-input', trim($text));
+    $page->keys('@note-input', 'ControlOrMeta+End');
+}
+
 test('a note mentions a teammate picked from the list and takes reactions', function () {
     Mail::fake();
 
@@ -42,7 +49,7 @@ test('a note mentions a teammate picked from the list and takes reactions', func
 
     $page->assertScript('(() => { const field = document.querySelector("[data-testid=note-composer]").getBoundingClientRect(); const send = document.querySelector("[data-testid=note-send]").getBoundingClientRect(); return Math.abs((field.top + field.height / 2) - (send.top + send.height / 2)) <= 1 && send.right <= field.right; })()', true);
 
-    $page->fill('@note-input', 'Please check the @image, @bi');
+    fillPostNoteEditor($page, 'Please check the @image, @bi');
     waitForOpen($page, '@note-mention-list');
     waitForText($page, '@note-mention-option', 'Bia Lima');
     $page->assertScript('(() => { const list = document.querySelector("[data-testid=note-mention-list]").getBoundingClientRect(); return list.top >= 0 && list.bottom <= window.innerHeight; })()', true);
@@ -102,7 +109,7 @@ test('the mention list works from the keyboard, says when nobody matches, an edi
     waitFor($page, '@note-input');
 
     $page->hover('@note-input');
-    $page->fill('@note-input', '@');
+    fillPostNoteEditor($page, '@');
     waitForOpen($page, '@note-mention-list');
     waitForCount($page, '@note-mention-option', 2);
     waitForState($page, '@note-input', "element.getAttribute('aria-expanded') === 'true'");
@@ -179,6 +186,7 @@ test('hovering a mention shows who it is, yourself included: photo, name and the
     waitForOpen($page, "@post-notes-section-{$post->id}");
     waitForCount($page, '@note-mention', 4);
     waitForText($page, '@note-body', '@Ana Souza @Bia Lima @Caio Former @Paulo Castellano');
+    waitForWebFonts($page);
 
     $tokyoTimes = json_encode([now('Asia/Tokyo')->format('H:i'), now('Asia/Tokyo')->addMinute()->format('H:i')]);
 
@@ -189,20 +197,20 @@ test('hovering a mention shows who it is, yourself included: photo, name and the
     waitForText($page, '@note-mention-card-name', 'Ana Souza');
     waitForState($page, '@note-mention-card-time', "{$tokyoTimes}.some((time) => element.textContent.includes(time + ' local time'))");
 
-    $page->hover('@note-body');
+    $page->click('@note-input');
     waitForGone($page, '@note-mention-card');
     $page->hover('[data-testid=note-mention]:nth-child(2)');
     waitForText($page, '@note-mention-card-name', 'Bia Lima');
     waitFor($page, '@note-mention-card-time');
     $page->assertMissing('@note-mention-card img');
 
-    $page->hover('@note-body');
+    $page->click('@note-input');
     waitForGone($page, '@note-mention-card');
     $page->hover('[data-testid=note-mention]:nth-child(3)');
     waitForText($page, '@note-mention-card-name', 'Caio Former');
     $page->assertMissing('@note-mention-card-time');
 
-    $page->hover('@note-body');
+    $page->click('@note-input');
     waitForGone($page, '@note-mention-card');
     $page->hover('[data-testid=note-mention]:nth-child(4)');
     waitForText($page, '@note-mention-card-name', 'Paulo Castellano');
@@ -230,11 +238,11 @@ test('@all is offered first in the mention list, in the reader\'s language, and 
     $page->click("@post-notes-trigger-{$post->id}");
     waitForOpen($page, "@post-notes-section-{$post->id}");
 
-    $page->fill('@note-input', '@');
+    fillPostNoteEditor($page, '@');
     waitForOpen($page, '@note-mention-list');
     waitForState($page, '[data-testid=note-mention-list] [role=option]', "element.dataset.testid === 'note-mention-option-everyone' && element.textContent.includes('@todos')");
 
-    $page->fill('@note-input', 'Revisem @tod');
+    fillPostNoteEditor($page, 'Revisem @tod');
     waitForCount($page, '[data-testid=note-mention-list] [role=option]', 1);
     $page->assertCount('@note-mention-option', 0)
         ->assertVisible('@note-mention-option-everyone');
@@ -268,7 +276,7 @@ test('the mention list follows the caret and the mouse, and narrows to a longer 
     $page->click("@post-notes-trigger-{$post->id}");
     waitForOpen($page, "@post-notes-section-{$post->id}");
 
-    $page->fill('@note-input', '@Ana');
+    fillPostNoteEditor($page, '@Ana');
     waitForOpen($page, '@note-mention-list');
     waitForCount($page, '@note-mention-option', 2);
 
@@ -283,7 +291,7 @@ test('the mention list follows the caret and the mouse, and narrows to a longer 
     waitForGone($page, '@note-mention-list');
     waitForEditorText($page, '@note-input', '@Ana Lima');
 
-    $page->fill('@note-input', 'hello @an');
+    fillPostNoteEditor($page, 'hello @an');
     waitForOpen($page, '@note-mention-list');
     $page->keys('@note-input', ['ArrowLeft', 'ArrowLeft', 'ArrowLeft']);
     waitForGone($page, '@note-mention-list');
@@ -324,10 +332,10 @@ test('the note composer enables send only with text and sends on Enter but not S
         ->assertMissing("@post-notes-count-{$post->id}")
         ->assertDisabled('@note-send');
 
-    $page->fill('@note-input', '   ');
+    fillPostNoteEditor($page, '   ');
     $page->assertDisabled('@note-send');
 
-    $page->fill('@note-input', 'First line');
+    fillPostNoteEditor($page, 'First line');
     waitForEditorText($page, '@note-input', 'First line');
     waitForState($page, '@note-send', '! element.disabled');
     $page->assertEnabled('@note-send');
@@ -379,7 +387,7 @@ test('text typed while a note is sending stays in the composer without the sent 
     JS;
 
     $page->script($holdRequests);
-    $page->fill('@note-input', 'Sent part');
+    fillPostNoteEditor($page, 'Sent part');
     waitForEditorText($page, '@note-input', 'Sent part');
     $page->keys('@note-input', ['Enter']);
     $page->typeSlowly('@note-input', ' typed after', 10);
@@ -515,7 +523,7 @@ test('scrolling up the thread loads older notes, reacting or sending keeps them,
     $loaded = $page->script("document.querySelectorAll('[data-testid=\"note-item\"]').length");
     expect($loaded)->toBeGreaterThanOrEqual(16);
 
-    $page->fill('@note-input', 'A brand new note');
+    fillPostNoteEditor($page, 'A brand new note');
     waitForEditorText($page, '@note-input', 'A brand new note');
     $page->keys('@note-input', 'Enter');
     waitForCount($page, '@note-item', $loaded + 1);
@@ -554,7 +562,7 @@ test('a note repeated by an older page after a new one disappears when deleted, 
     waitFor($page, "@post-notes-trigger-{$post->id}");
     $page->click("@post-notes-trigger-{$post->id}");
     waitForCount($page, '@note-item', 8);
-    $page->fill('@note-input', 'A brand new note');
+    fillPostNoteEditor($page, 'A brand new note');
     waitForEditorText($page, '@note-input', 'A brand new note');
     $page->keys('@note-input', 'Enter');
     waitForCount($page, '@note-item', 9);
@@ -846,16 +854,16 @@ test('notes open, grow, send, edit and fit the card on every tab, on desktop and
     waitFor($page, '@note-input');
 
     $singleLine = $page->script("document.querySelector('[data-testid=\"note-input\"]').getBoundingClientRect().height");
-    $page->fill('@note-input', 'First line');
+    fillPostNoteEditor($page, 'First line');
     waitForEditorText($page, '@note-input', 'First line');
     $page->keys('@note-input', ['Shift+Enter']);
     waitFor($page, '@note-input br');
     $page->typeSlowly('@note-input', 'Second line', 10);
-    waitForEditorText($page, '@note-input', "First line\nSecond line");
+    $page->assertScript("document.querySelector('[data-testid=\"note-input\"]').innerText.trim()", "First line\nSecond line");
     $page->keys('@note-input', ['Shift+Enter']);
     waitForCount($page, '@note-input br', 2, '>=');
     $page->typeSlowly('@note-input', 'Third line', 10);
-    waitForEditorText($page, '@note-input', "First line\nSecond line\nThird line");
+    $page->assertScript("document.querySelector('[data-testid=\"note-input\"]').innerText.trim()", "First line\nSecond line\nThird line");
     $grown = $page->script("document.querySelector('[data-testid=\"note-input\"]').getBoundingClientRect().height");
     expect($grown)->toBeGreaterThan($singleLine)
         ->and($page->script("document.querySelector('[data-testid=\"note-composer\"]').getBoundingClientRect().height"))->toBeGreaterThanOrEqual($grown);
