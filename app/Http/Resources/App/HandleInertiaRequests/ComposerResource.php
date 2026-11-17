@@ -48,6 +48,7 @@ class ComposerResource
                 ->get()
                 ->mapWithKeys(fn (SocialAccount $account): array => [$account->id => [
                     'timezone' => $account->timezone,
+                    'scopes' => (array) $account->scopes,
                     'posting_schedule' => $account->posting_schedule?->toArray(),
                     'has_posting_schedule' => $account->hasPostingSchedule(),
                     'platform_config' => PlatformConfigResource::make($account)->resolve(),

@@ -16,6 +16,7 @@ return [
     'less' => 'Voir moins',
     'empty_day' => 'Rien de prévu ce jour-là.',
     'post_status' => [
+        'inbox_delivered' => 'Dans la boîte TikTok',
         'draft' => 'Brouillon',
         'pending_approval' => 'En attente d\'approbation',
         'queue' => 'Dans la file d\'attente',

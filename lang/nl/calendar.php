@@ -16,6 +16,7 @@ return [
     'less' => 'Minder tonen',
     'empty_day' => 'Niets gepland voor deze dag.',
     'post_status' => [
+        'inbox_delivered' => 'In TikTok-inbox',
         'draft' => 'Concept',
         'pending_approval' => 'Wacht op goedkeuring',
         'queue' => 'In de wachtrij',

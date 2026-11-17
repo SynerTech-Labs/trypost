@@ -10,6 +10,11 @@ declare(strict_types=1);
 */
 
 return [
+    'posts.status.inbox_delivered' => 23,
+    'posts.form.tiktok.posting_mode' => 25,
+    'posts.form.tiktok.direct_post' => 23,
+    'posts.form.tiktok.draft_upload' => 30,
+    'posts.form.tiktok.copy_caption' => 21,
     'posts.status.draft' => 9,
     'posts.status.pending_approval' => 13,
     'posts.status.scheduled' => 16,

@@ -17,10 +17,7 @@ import {
     takenSlots as composerTakenSlots,
 } from '@/routes/app/posts/composer';
 import type { PinterestBoardsPayload, SharedData } from '@/types';
-import type {
-    ChannelTikTokCreatorInfo,
-    SidebarChannel,
-} from '@/types/channel';
+import type { ChannelTikTokCreatorInfo, SidebarChannel } from '@/types/channel';
 import { Platform } from '@/types/platform';
 import type { PostingSchedule } from '@/types/posting-schedule';
 
@@ -29,6 +26,7 @@ export interface ComposerSharedData {
         string,
         {
             timezone: string | null;
+            scopes?: string[];
             posting_schedule: PostingSchedule | null;
             has_posting_schedule: boolean;
             platform_config: Record<string, any>;
@@ -56,7 +54,11 @@ export interface ComposerLiveState {
     /** Whether a Pinterest or TikTok channel's own data has arrived. */
     accountLoaded: (accountId: string) => boolean;
     /** The instants already held on a channel between two UTC instants. */
-    takenSlots: (accountId: string, from: string, to: string) => Promise<string[]>;
+    takenSlots: (
+        accountId: string,
+        from: string,
+        to: string,
+    ) => Promise<string[]>;
 }
 
 export const composerLiveKey: InjectionKey<ComposerLiveState> =
@@ -96,9 +98,7 @@ const refreshedBundle = shallowRef<{
 export const useComposerData = () => {
     const page = usePage<SharedData>();
     const http = useHttp<Record<string, never>, ComposerLiveData>({});
-    const accountHttp = useHttp<Record<string, never>, ComposerAccountData>(
-        {},
-    );
+    const accountHttp = useHttp<Record<string, never>, ComposerAccountData>({});
     const slotsHttp = useHttp<Record<string, never>, { takenSlots: string[] }>(
         {},
     );
@@ -145,6 +145,7 @@ export const useComposerData = () => {
                 ...channel,
                 display_name: channel.display_name ?? '',
                 timezone: details?.timezone ?? channel.timezone,
+                scopes: details?.scopes,
                 has_posting_schedule: details?.has_posting_schedule ?? false,
                 posting_schedule: details?.posting_schedule ?? null,
             };

@@ -16,6 +16,7 @@ return [
     'less' => 'Λιγότερα',
     'empty_day' => 'Τίποτα προγραμματισμένο για αυτή την ημέρα.',
     'post_status' => [
+        'inbox_delivered' => 'Στα εισερχόμενα TikTok',
         'draft' => 'Πρόχειρο',
         'pending_approval' => 'Σε αναμονή έγκρισης',
         'queue' => 'Στην ουρά',

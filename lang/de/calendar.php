@@ -16,6 +16,7 @@ return [
     'less' => 'Weniger anzeigen',
     'empty_day' => 'Für diesen Tag ist nichts geplant.',
     'post_status' => [
+        'inbox_delivered' => 'Im TikTok-Posteingang',
         'draft' => 'Entwurf',
         'pending_approval' => 'Wartet auf Freigabe',
         'queue' => 'In der Warteschlange',

@@ -16,6 +16,7 @@ return [
     'less' => 'Ver menos',
     'empty_day' => 'Nada planejado para este dia.',
     'post_status' => [
+        'inbox_delivered' => 'Na caixa do TikTok',
         'draft' => 'Rascunho',
         'pending_approval' => 'Aguardando aprovação',
         'queue' => 'Na fila',

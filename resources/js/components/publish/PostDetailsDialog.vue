@@ -32,10 +32,13 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
-    getPlatformLabel,
-} from '@/composables/usePlatformLogo';
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { getPlatformLabel } from '@/composables/usePlatformLogo';
 import {
     schedulePostCard,
     usePageReload,
@@ -52,11 +55,12 @@ import { isDeletedOnNetwork, postPermalink } from '@/lib/postNetwork';
 import { postThreadOf } from '@/lib/postThread';
 import { compactPublicationMetrics } from '@/lib/publicationMetrics';
 import { isRecurring } from '@/lib/recurrence';
+import { copyToClipboard, htmlToPlainText } from '@/lib/utils';
 import { postPollResults } from '@/lib/xPoll';
 import { ContentType } from '@/types/content-type';
 import type { MediaItem } from '@/types/media';
 import { Platform } from '@/types/platform';
-import { PostOrigin, PostStatus } from '@/types/post';
+import { PostOrigin, PostStatus, PublishStatus } from '@/types/post';
 import type { PostCard, PostCardMenuAction } from '@/types/publish';
 
 const props = defineProps<{
@@ -94,18 +98,22 @@ const loadGroup = async (): Promise<void> => {
 
 const isGrouped = computed(() => (props.post.group_posts_count ?? 0) > 1);
 
-watch(open, (value) => {
-    if (!value) {
-        return;
-    }
+watch(
+    open,
+    (value) => {
+        if (!value) {
+            return;
+        }
 
-    selectedId.value = props.post.id;
-    group.value = null;
+        selectedId.value = props.post.id;
+        group.value = null;
 
-    if (isGrouped.value) {
-        loadGroup();
-    }
-}, { immediate: true });
+        if (isGrouped.value) {
+            loadGroup();
+        }
+    },
+    { immediate: true },
+);
 
 watch(
     () => props.post,
@@ -130,6 +138,30 @@ const current = computed<PostCard>(() =>
 );
 
 const currentStatus = computed(() => postDisplayStatus(current.value));
+
+const isTikTokDraft = computed(() => {
+    if (current.value.platform !== Platform.TikTok) {
+        return false;
+    }
+
+    return current.value.meta?.posting_mode === 'draft_upload';
+});
+
+const showsTikTokDraftHelp = computed(() => {
+    if (!isTikTokDraft.value) {
+        return false;
+    }
+
+    return current.value.publish_status !== PublishStatus.Published;
+});
+
+const copyCaption = (): void => {
+    void copyToClipboard(
+        htmlToPlainText(current.value.content ?? ''),
+        undefined,
+        { showSuccessToast: false },
+    );
+};
 
 /** Each sibling's status in the rail; a post the network deleted reads as deleted. */
 const railStatuses = computed(() =>
@@ -280,19 +312,18 @@ const siblingMoment = (sibling: PostCard): string | null => {
           )
         : null;
 };
-
 </script>
 
 <template>
     <Dialog v-model:open="open">
         <DialogContent
             class="gap-0 p-0 sm:overflow-hidden"
-            :class="
-                isGrouped ? 'sm:max-w-4xl' : 'sm:max-w-xl'
-            "
+            :class="isGrouped ? 'sm:max-w-4xl' : 'sm:max-w-xl'"
             :data-testid="`post-details-${testKey}`"
         >
-            <div class="flex min-h-0 min-w-0 flex-col sm:max-h-[85dvh] sm:flex-row">
+            <div
+                class="flex min-h-0 min-w-0 flex-col sm:max-h-[85dvh] sm:flex-row"
+            >
                 <aside
                     v-if="showRail"
                     class="flex shrink-0 flex-col gap-2 border-b border-border p-4 sm:w-64 sm:overflow-y-auto sm:border-e sm:border-b-0"
@@ -311,7 +342,9 @@ const siblingMoment = (sibling: PostCard): string | null => {
                         type="button"
                         class="flex items-center gap-3 rounded-lg p-2 text-start transition-control hover:bg-secondary"
                         :class="sibling.id === current.id ? 'bg-secondary' : ''"
-                        :aria-current="sibling.id === current.id ? 'true' : undefined"
+                        :aria-current="
+                            sibling.id === current.id ? 'true' : undefined
+                        "
                         :data-testid="`post-details-rail-item-${sibling.id}`"
                         @click="selectSibling(sibling.id)"
                     >
@@ -343,7 +376,9 @@ const siblingMoment = (sibling: PostCard): string | null => {
                                     :is="railStatuses[sibling.id].icon"
                                     :class="railStatuses[sibling.id].iconClass"
                                     class="size-3.5 shrink-0"
-                                    :aria-label="$t(railStatuses[sibling.id].labelKey)"
+                                    :aria-label="
+                                        $t(railStatuses[sibling.id].labelKey)
+                                    "
                                     :data-testid="`post-details-rail-status-icon-${sibling.id}`"
                                 />
                                 {{
@@ -411,6 +446,22 @@ const siblingMoment = (sibling: PostCard): string | null => {
                         </DialogDescription>
                     </DialogHeader>
 
+                    <div
+                        v-if="showsTikTokDraftHelp"
+                        class="space-y-2 rounded-lg bg-muted p-3"
+                        data-testid="tiktok-inbox-help"
+                    >
+                        <p class="text-sm text-muted-foreground">
+                            {{ $t('posts.form.tiktok.draft_delivery_hint') }}
+                        </p>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            @click="copyCaption"
+                            >{{ $t('posts.form.tiktok.copy_caption') }}</Button
+                        >
+                    </div>
+
                     <section
                         v-if="!showsThread && channel"
                         class="flex items-center gap-3"
@@ -460,38 +511,44 @@ const siblingMoment = (sibling: PostCard): string | null => {
                         </template>
                     </ThreadView>
                     <template v-else>
-                    <div class="flex flex-col items-start gap-1">
-                        <p
-                            ref="textElement"
-                            class="w-full text-sm break-words whitespace-pre-line"
-                            :class="[
-                                content ? 'text-foreground' : 'text-muted-foreground',
-                                textExpanded ? '' : 'line-clamp-6',
-                            ]"
-                            :data-testid="`post-details-text-${currentKey}`"
-                        >
-                            {{ content || $t('calendar.no_content') }}
-                        </p>
-                        <button
-                            v-if="textClamped && !textExpanded"
-                            type="button"
-                            class="text-sm font-medium text-muted-foreground hover:text-foreground"
-                            :data-testid="`post-details-see-more-${currentKey}`"
-                            @click="expandText"
-                        >
-                            {{ $t('posts.composer.preview.see_more') }}
-                        </button>
-                    </div>
+                        <div class="flex flex-col items-start gap-1">
+                            <p
+                                ref="textElement"
+                                class="w-full text-sm break-words whitespace-pre-line"
+                                :class="[
+                                    content
+                                        ? 'text-foreground'
+                                        : 'text-muted-foreground',
+                                    textExpanded ? '' : 'line-clamp-6',
+                                ]"
+                                :data-testid="`post-details-text-${currentKey}`"
+                            >
+                                {{ content || $t('calendar.no_content') }}
+                            </p>
+                            <button
+                                v-if="textClamped && !textExpanded"
+                                type="button"
+                                class="text-sm font-medium text-muted-foreground hover:text-foreground"
+                                :data-testid="`post-details-see-more-${currentKey}`"
+                                @click="expandText"
+                            >
+                                {{ $t('posts.composer.preview.see_more') }}
+                            </button>
+                        </div>
 
-                    <PostDetailsMedia
-                        v-if="media.length"
-                        :items="media"
-                        :test-key="currentKey"
-                        @open="openMediaPreview(media, $event)"
-                    />
-                    <YouTubeVideoStatus v-if="showsYouTubeExtras" :post-id="current.id" :meta="youtubeMeta" :can-retry="canPublishDirectly" />
+                        <PostDetailsMedia
+                            v-if="media.length"
+                            :items="media"
+                            :test-key="currentKey"
+                            @open="openMediaPreview(media, $event)"
+                        />
+                        <YouTubeVideoStatus
+                            v-if="showsYouTubeExtras"
+                            :post-id="current.id"
+                            :meta="youtubeMeta"
+                            :can-retry="canPublishDirectly"
+                        />
                     </template>
-
 
                     <PostCardLabels
                         :key="current.id"
@@ -541,21 +598,41 @@ const siblingMoment = (sibling: PostCard): string | null => {
                                             class="inline-flex cursor-default items-center gap-1"
                                             :data-testid="`post-details-published-via-${currentKey}`"
                                         >
-                                            {{ $t('posts.publish.published_via') }}
+                                            {{
+                                                $t(
+                                                    'posts.publish.published_via',
+                                                )
+                                            }}
                                             <PlatformBrandIcon
                                                 :platform="channel.platform"
                                                 :data-testid="`post-details-published-via-icon-${currentKey}`"
                                             />
-                                            <template v-if="channel.platform !== Platform.X">
-                                                {{ getPlatformLabel(channel.platform) }}
+                                            <template
+                                                v-if="
+                                                    channel.platform !==
+                                                    Platform.X
+                                                "
+                                            >
+                                                {{
+                                                    getPlatformLabel(
+                                                        channel.platform,
+                                                    )
+                                                }}
                                             </template>
                                         </span>
                                     </TooltipTrigger>
-                                    <TooltipContent :data-testid="`post-details-published-via-tooltip-${currentKey}`">
+                                    <TooltipContent
+                                        :data-testid="`post-details-published-via-tooltip-${currentKey}`"
+                                    >
                                         {{
-                                            $t('posts.publish.published_directly_from', {
-                                                network: getPlatformLabel(channel.platform),
-                                            })
+                                            $t(
+                                                'posts.publish.published_directly_from',
+                                                {
+                                                    network: getPlatformLabel(
+                                                        channel.platform,
+                                                    ),
+                                                },
+                                            )
                                         }}
                                     </TooltipContent>
                                 </Tooltip>
@@ -566,7 +643,9 @@ const siblingMoment = (sibling: PostCard): string | null => {
                                 >{{
                                     $t('posts.publish.created_by', {
                                         name: current.user.name,
-                                        when: date.diffForHumans(current.created_at),
+                                        when: date.diffForHumans(
+                                            current.created_at,
+                                        ),
                                     })
                                 }}</span
                             >
@@ -614,7 +693,9 @@ const siblingMoment = (sibling: PostCard): string | null => {
                                 :test-key="`details-${currentKey}`"
                                 :movable="false"
                                 :details="false"
-                                @select="(action) => emit('select', action, current)"
+                                @select="
+                                    (action) => emit('select', action, current)
+                                "
                             />
                         </div>
                     </DialogFooter>

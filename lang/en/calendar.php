@@ -16,6 +16,7 @@ return [
     'less' => 'Show less',
     'empty_day' => 'Nothing planned for this day.',
     'post_status' => [
+        'inbox_delivered' => 'In TikTok inbox',
         'draft' => 'Draft',
         'pending_approval' => 'Pending approval',
         'queue' => 'In the queue',

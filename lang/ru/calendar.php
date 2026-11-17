@@ -16,6 +16,7 @@ return [
     'less' => 'Свернуть',
     'empty_day' => 'На этот день ничего не запланировано.',
     'post_status' => [
+        'inbox_delivered' => 'Во входящих TikTok',
         'draft' => 'Черновик',
         'pending_approval' => 'Ожидает одобрения',
         'queue' => 'В очереди',

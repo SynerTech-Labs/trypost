@@ -16,6 +16,7 @@ return [
     'less' => 'عرض أقل',
     'empty_day' => 'لا شيء مخطط لهذا اليوم.',
     'post_status' => [
+        'inbox_delivered' => 'في صندوق وارد TikTok',
         'draft' => 'مسودة',
         'pending_approval' => 'بانتظار الموافقة',
         'queue' => 'في قائمة الانتظار',

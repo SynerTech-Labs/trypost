@@ -42,6 +42,7 @@ export interface ConnectedAccount {
     verified_badge?: VerifiedBadge | null;
     profile_url?: string | null;
     status: SocialAccountStatusValue | null;
+    scopes?: string[];
 }
 
 const CONNECTION_LOST_STATUSES: SocialAccountStatusValue[] = [
@@ -67,7 +68,9 @@ export const isConnectionLost = (account: {
 };
 
 /** The lang key of an account's type ("LinkedIn Page"); none on a network connected one way only. */
-export const accountTypeKey = (account: { platform: string }): string | null => {
+export const accountTypeKey = (account: {
+    platform: string;
+}): string | null => {
     if (!PLATFORMS_WITH_ACCOUNT_TYPE.includes(account.platform)) {
         return null;
     }

@@ -4,15 +4,15 @@ import {
     IconArrowsMaximize,
     IconCircleDashedPlus,
     IconCirclePlay,
+    IconClockPause,
     IconExternalLink,
     IconGhost2,
-    IconMessageCircle,
-    IconMessageCircleFilled,
     IconGripVertical,
-    IconClockPause,
     IconHourglass,
     IconListDetails,
     IconLoader2,
+    IconMessageCircle,
+    IconMessageCircleFilled,
     IconPencil,
     IconPlayerPlayFilled,
     IconRepeat,
@@ -72,8 +72,8 @@ import { postPollResults } from '@/lib/xPoll';
 import { Platform } from '@/types/platform';
 import {
     PostOrigin,
-    PublishStatus,
     PostStatus,
+    PublishStatus,
     ScheduleMode,
 } from '@/types/post';
 import type {
@@ -139,6 +139,22 @@ const account = computed(() => props.post.social_account ?? null);
 const isPublishing = computed(
     () => props.post.status === PostStatus.Publishing,
 );
+
+const isInboxDelivered = computed(() => {
+    if (props.post.publish_status === PublishStatus.InboxDelivered) {
+        return true;
+    }
+
+    return false;
+});
+
+const showsTransferProgress = computed(() => {
+    if (isInboxDelivered.value) {
+        return false;
+    }
+
+    return !isInGoogleReview.value;
+});
 
 const isInGoogleReview = computed(
     () =>
@@ -280,13 +296,16 @@ const CONTENT_TYPE_ICONS: Record<string, Component> = {
     x_poll: IconListDetails,
 };
 
-const contentTypeIcon = computed(() =>
-    CONTENT_TYPE_ICONS[props.post.content_type ?? ''] ?? null,
+const contentTypeIcon = computed(
+    () => CONTENT_TYPE_ICONS[props.post.content_type ?? ''] ?? null,
 );
 
 const contentTypeKey = computed(() =>
     platform.value
-        ? getContentTypeBadgeKey(platform.value, props.post.content_type ?? null)
+        ? getContentTypeBadgeKey(
+              platform.value,
+              props.post.content_type ?? null,
+          )
         : null,
 );
 
@@ -384,7 +403,6 @@ const onMenuSelect = (action: PostCardMenuAction): void => {
             runMenuAction(action);
     }
 };
-
 </script>
 
 <template>
@@ -495,7 +513,7 @@ const onMenuSelect = (action: PostCardMenuAction): void => {
                     :data-testid="`post-publishing-${post.id}`"
                 >
                     <span
-                        v-if="!isInGoogleReview"
+                        v-if="showsTransferProgress"
                         class="absolute inset-x-0 -bottom-px h-0.5 overflow-hidden"
                         aria-hidden="true"
                         :data-testid="`post-publishing-progress-${post.id}`"
@@ -504,8 +522,13 @@ const onMenuSelect = (action: PostCardMenuAction): void => {
                             class="motion-progress-sweep block h-full w-2/5 rounded-full bg-primary-strong"
                         />
                     </span>
+                    <PostStatusBadge
+                        v-if="isInboxDelivered"
+                        status="inbox_delivered"
+                        :data-testid="`post-inbox-delivered-${post.id}`"
+                    />
                     <span
-                        v-if="limitRetryAt"
+                        v-else-if="limitRetryAt"
                         class="inline-flex items-center gap-2"
                         :data-testid="`post-limit-retry-${post.id}`"
                     >
@@ -567,7 +590,11 @@ const onMenuSelect = (action: PostCardMenuAction): void => {
                                     getPlatformLabel(platform)
                                 "
                                 ring="card"
-                                @dragstart="draggable ? $event.preventDefault() : undefined"
+                                @dragstart="
+                                    draggable
+                                        ? $event.preventDefault()
+                                        : undefined
+                                "
                             />
                             <div class="min-w-0">
                                 <p
@@ -711,10 +738,14 @@ const onMenuSelect = (action: PostCardMenuAction): void => {
                 >
                     <p
                         class="min-w-0 truncate text-sm text-foreground"
-                        :class="{ 'max-sm:hidden': post.origin === PostOrigin.Network }"
+                        :class="{
+                            'max-sm:hidden': post.origin === PostOrigin.Network,
+                        }"
                     >
                         <TooltipProvider
-                            v-if="post.origin === PostOrigin.Network && platform"
+                            v-if="
+                                post.origin === PostOrigin.Network && platform
+                            "
                             :delay-duration="200"
                         >
                             <Tooltip>
@@ -728,16 +759,24 @@ const onMenuSelect = (action: PostCardMenuAction): void => {
                                             :platform="platform"
                                             :data-testid="`post-published-via-icon-${post.id}`"
                                         />
-                                        <template v-if="platform !== Platform.X">
+                                        <template
+                                            v-if="platform !== Platform.X"
+                                        >
                                             {{ getPlatformLabel(platform) }}
                                         </template>
                                     </span>
                                 </TooltipTrigger>
-                                <TooltipContent :data-testid="`post-published-via-tooltip-${post.id}`">
+                                <TooltipContent
+                                    :data-testid="`post-published-via-tooltip-${post.id}`"
+                                >
                                     {{
-                                        $t('posts.publish.published_directly_from', {
-                                            network: getPlatformLabel(platform),
-                                        })
+                                        $t(
+                                            'posts.publish.published_directly_from',
+                                            {
+                                                network:
+                                                    getPlatformLabel(platform),
+                                            },
+                                        )
                                     }}
                                 </TooltipContent>
                             </Tooltip>
@@ -746,11 +785,12 @@ const onMenuSelect = (action: PostCardMenuAction): void => {
                             v-else-if="post.user?.name"
                             :data-testid="`post-created-by-${post.id}`"
                             >{{
-                            $t('posts.publish.created_by', {
-                                name: post.user.name,
-                                when: date.diffForHumans(post.created_at),
-                            })
-                        }}</span>
+                                $t('posts.publish.created_by', {
+                                    name: post.user.name,
+                                    when: date.diffForHumans(post.created_at),
+                                })
+                            }}</span
+                        >
                     </p>
                     <div
                         class="flex max-w-full shrink-0 flex-wrap items-center gap-1 max-sm:ms-auto"
@@ -779,7 +819,11 @@ const onMenuSelect = (action: PostCardMenuAction): void => {
                                             v-if="noteCount > 0"
                                             class="flex h-4 min-w-4 items-center justify-center rounded-full bg-primary-selected px-1 text-[10px] leading-none font-medium text-primary-text tabular-nums"
                                             :data-testid="`post-notes-count-${post.id}`"
-                                            >{{ noteCount > 99 ? '99+' : noteCount }}</span
+                                            >{{
+                                                noteCount > 99
+                                                    ? '99+'
+                                                    : noteCount
+                                            }}</span
                                         >
                                     </Button>
                                 </CollapsibleTrigger>
@@ -822,16 +866,20 @@ const onMenuSelect = (action: PostCardMenuAction): void => {
                                 :data-testid="`post-view-tooltip-${post.id}`"
                             >
                                 {{
-                                    $t('posts.publish.actions.open_on_network', {
-                                        network: getPlatformLabel(
-                                            platform,
-                                        ),
-                                    })
+                                    $t(
+                                        'posts.publish.actions.open_on_network',
+                                        {
+                                            network: getPlatformLabel(platform),
+                                        },
+                                    )
                                 }}
                             </TooltipContent>
                         </Tooltip>
                         <Button
-                            v-if="canPublishDirectly && post.status === PostStatus.Scheduled"
+                            v-if="
+                                canPublishDirectly &&
+                                post.status === PostStatus.Scheduled
+                            "
                             variant="outline"
                             :data-testid="`post-publish-now-${post.id}`"
                             @click="publishNow"
@@ -844,7 +892,9 @@ const onMenuSelect = (action: PostCardMenuAction): void => {
                                 <Button
                                     variant="outline"
                                     size="icon"
-                                    :aria-label="$t('posts.publish.actions.edit')"
+                                    :aria-label="
+                                        $t('posts.publish.actions.edit')
+                                    "
                                     :data-testid="`post-edit-${post.id}`"
                                     @click="edit()"
                                 >
@@ -899,6 +949,5 @@ const onMenuSelect = (action: PostCardMenuAction): void => {
                 </CollapsibleContent>
             </article>
         </Collapsible>
-
     </div>
 </template>

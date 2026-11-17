@@ -16,6 +16,7 @@ return [
     'less' => '收起',
     'empty_day' => '这一天没有安排。',
     'post_status' => [
+        'inbox_delivered' => '已送达 TikTok 收件箱',
         'draft' => '草稿',
         'pending_approval' => '待审批',
         'queue' => '在队列中',

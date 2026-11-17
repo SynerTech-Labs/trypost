@@ -16,6 +16,7 @@ return [
     'less' => '접기',
     'empty_day' => '이 날 예정된 게시물이 없습니다.',
     'post_status' => [
+        'inbox_delivered' => 'TikTok 받은 편지함에 도착',
         'draft' => '초안',
         'pending_approval' => '승인 대기 중',
         'queue' => '대기열에 있음',

@@ -33,7 +33,7 @@ import { isDeletedOnNetwork } from '@/lib/postNetwork';
 import { htmlToPlainText } from '@/lib/utils';
 import { videoFrameUrl } from '@/lib/videoFrame';
 import { Platform } from '@/types/platform';
-import { PostStatus, ScheduleMode } from '@/types/post';
+import { PostStatus, PublishStatus, ScheduleMode } from '@/types/post';
 import type { CalendarPost } from '@/types/publish';
 
 defineOptions({ inheritAttrs: false });
@@ -107,6 +107,7 @@ type StatusKey =
     | 'custom'
     | 'recurring'
     | 'publishing'
+    | 'inbox_delivered'
     | 'published'
     | 'deleted'
     | 'failed';
@@ -118,18 +119,63 @@ interface StatusMarker {
 }
 
 const STATUS_MARKERS: Record<StatusKey, StatusMarker> = {
-    draft: { icon: IconPencil, tone: 'text-muted-foreground', testId: 'calendar-post-draft' },
-    pending_approval: { icon: IconHourglass, tone: 'text-muted-foreground', testId: 'calendar-post-pending' },
-    queue: { icon: IconListNumbers, tone: 'text-muted-foreground', testId: 'post-schedule-mode' },
-    custom: { icon: IconPin, tone: 'text-muted-foreground', testId: 'post-schedule-mode' },
-    recurring: { icon: IconRepeat, tone: 'text-muted-foreground', testId: 'calendar-post-recurring' },
-    publishing: { icon: IconSend, tone: 'text-muted-foreground', testId: 'calendar-post-publishing' },
-    published: { icon: IconCircleCheck, tone: 'text-success', testId: 'calendar-post-published' },
-    deleted: { icon: IconTrashX, tone: 'text-destructive', testId: 'calendar-post-deleted' },
-    failed: { icon: IconAlertCircle, tone: 'text-destructive', testId: 'calendar-post-failed' },
+    draft: {
+        icon: IconPencil,
+        tone: 'text-muted-foreground',
+        testId: 'calendar-post-draft',
+    },
+    pending_approval: {
+        icon: IconHourglass,
+        tone: 'text-muted-foreground',
+        testId: 'calendar-post-pending',
+    },
+    queue: {
+        icon: IconListNumbers,
+        tone: 'text-muted-foreground',
+        testId: 'post-schedule-mode',
+    },
+    custom: {
+        icon: IconPin,
+        tone: 'text-muted-foreground',
+        testId: 'post-schedule-mode',
+    },
+    recurring: {
+        icon: IconRepeat,
+        tone: 'text-muted-foreground',
+        testId: 'calendar-post-recurring',
+    },
+    publishing: {
+        icon: IconSend,
+        tone: 'text-muted-foreground',
+        testId: 'calendar-post-publishing',
+    },
+    inbox_delivered: {
+        icon: IconHourglass,
+        tone: 'text-info',
+        testId: 'calendar-post-inbox-delivered',
+    },
+    published: {
+        icon: IconCircleCheck,
+        tone: 'text-success',
+        testId: 'calendar-post-published',
+    },
+    deleted: {
+        icon: IconTrashX,
+        tone: 'text-destructive',
+        testId: 'calendar-post-deleted',
+    },
+    failed: {
+        icon: IconAlertCircle,
+        tone: 'text-destructive',
+        testId: 'calendar-post-failed',
+    },
 };
 
 const statusKey = computed((): StatusKey => {
+    if (props.post.publish_status === PublishStatus.InboxDelivered) {
+        return 'inbox_delivered';
+    }
+
     if (isDeletedOnNetwork(props.post)) {
         return 'deleted';
     }
@@ -191,7 +237,12 @@ const chipClass = computed(() => [
                     >{{ time }}</span
                 >
             </span>
-            <span v-if="youtubeFormatKey" class="shrink-0 text-[10px] font-medium" :data-testid="`calendar-post-format-${post.id}`">{{ $t(youtubeFormatKey) }}</span>
+            <span
+                v-if="youtubeFormatKey"
+                class="shrink-0 text-[10px] font-medium"
+                :data-testid="`calendar-post-format-${post.id}`"
+                >{{ $t(youtubeFormatKey) }}</span
+            >
             <Tooltip :delay-duration="200">
                 <TooltipTrigger as-child>
                     <span

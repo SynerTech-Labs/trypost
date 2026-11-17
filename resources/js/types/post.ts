@@ -17,17 +17,20 @@ export const PublishStatus = {
     Retrying: 'retrying',
     Rejected: 'rejected',
     PendingReview: 'pending_review',
+    InboxDelivered: 'inbox_delivered',
     Deleted: 'deleted',
 } as const;
 
-export type PublishStatusValue = (typeof PublishStatus)[keyof typeof PublishStatus];
+export type PublishStatusValue =
+    (typeof PublishStatus)[keyof typeof PublishStatus];
 
 export const ScheduleMode = {
     Queue: 'queue',
     Custom: 'custom',
 } as const;
 
-export type ScheduleModeValue = (typeof ScheduleMode)[keyof typeof ScheduleMode];
+export type ScheduleModeValue =
+    (typeof ScheduleMode)[keyof typeof ScheduleMode];
 
 export const PostOrigin = {
     TryPost: 'trypost',

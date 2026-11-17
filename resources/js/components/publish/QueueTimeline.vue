@@ -12,7 +12,7 @@ import {
 } from '@/composables/useSortableQueue';
 import dayjs from '@/dayjs';
 import { blank, filled } from '@/lib/helpers';
-import { PostStatus, ScheduleMode } from '@/types/post';
+import { PostStatus, PublishStatus, ScheduleMode } from '@/types/post';
 import type {
     PostCard,
     PostCardMove,
@@ -34,6 +34,16 @@ const props = defineProps<{
     slotDrop: boolean;
 }>();
 
+const publishingHeadingKey = computed(() => {
+    for (const post of props.publishing) {
+        if (post.publish_status !== PublishStatus.InboxDelivered) {
+            return 'posts.publish.publishing_now';
+        }
+    }
+
+    return 'posts.status.inbox_delivered';
+});
+
 const emit = defineEmits<{
     reorder: [channelId: string, orderedPostIds: string[]];
     moveTop: [post: PostCard];
@@ -50,12 +60,13 @@ const imminenceTimer = window.setInterval(() => {
 
 onBeforeUnmount(() => window.clearInterval(imminenceTimer));
 
-const { register, registerSlot, dropIndicator, slotDropKey } =
-    useSortableQueue({
+const { register, registerSlot, dropIndicator, slotDropKey } = useSortableQueue(
+    {
         onReorder: (channelId, orderedPostIds) =>
             emit('reorder', channelId, orderedPostIds),
         onMoveToSlot: (postId, slot) => emit('moveToSlot', postId, slot),
-    });
+    },
+);
 
 type QueueStep =
     | { kind: 'queued' | 'custom'; postId: string }
@@ -257,7 +268,7 @@ const loadMoreTimes = (): void => {
             data-testid="queue-publishing"
         >
             <h2 class="text-base leading-5 font-emphasis text-foreground">
-                {{ $t('posts.publish.publishing_now') }}
+                {{ $t(publishingHeadingKey) }}
             </h2>
             <PostTimelineCard
                 v-for="post in publishing"
@@ -285,10 +296,7 @@ const loadMoreTimes = (): void => {
             :register-slot="registerSlot"
             @move="onMove"
         />
-        <div
-            v-if="canLoadMoreTimes"
-            class="-mt-6 flex justify-center p-4"
-        >
+        <div v-if="canLoadMoreTimes" class="-mt-6 flex justify-center p-4">
             <button
                 type="button"
                 class="inline-flex items-center gap-1 rounded-md text-base leading-4 text-muted-foreground transition-control hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"

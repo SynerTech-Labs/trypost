@@ -16,6 +16,7 @@ return [
     'less' => 'Daha az göster',
     'empty_day' => 'Bu gün için planlanmış bir şey yok.',
     'post_status' => [
+        'inbox_delivered' => 'TikTok gelen kutusunda',
         'draft' => 'Taslak',
         'pending_approval' => 'Onay bekliyor',
         'queue' => 'Kuyrukta',

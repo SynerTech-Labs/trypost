@@ -22,9 +22,18 @@ export type PostDisplayStatus =
     | PostStatusValue
     | 'retrying'
     | 'pending_review'
+    | 'inbox_delivered'
     | 'deleted_on_network';
 
-type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'destructive-subtle' | 'success' | 'warning' | 'info' | 'outline';
+type BadgeVariant =
+    | 'default'
+    | 'secondary'
+    | 'destructive'
+    | 'destructive-subtle'
+    | 'success'
+    | 'warning'
+    | 'info'
+    | 'outline';
 
 interface StatusConfig {
     variant: BadgeVariant;
@@ -39,16 +48,27 @@ const CONFIGS: Record<PostDisplayStatus, Omit<StatusConfig, 'labelKey'>> = {
     draft: { variant: 'info', icon: IconEdit },
     pending_approval: { variant: 'secondary', icon: IconHourglass },
     scheduled: { variant: 'default', icon: IconClock },
-    publishing: { variant: 'warning', icon: IconLoader2, iconClass: 'animate-spin' },
-    retrying: { variant: 'warning', icon: IconLoader2, iconClass: 'animate-spin' },
+    publishing: {
+        variant: 'warning',
+        icon: IconLoader2,
+        iconClass: 'animate-spin',
+    },
+    retrying: {
+        variant: 'warning',
+        icon: IconLoader2,
+        iconClass: 'animate-spin',
+    },
     published: { variant: 'success', icon: IconCircleCheck },
     failed: { variant: 'destructive-subtle', icon: IconAlertCircle },
     pending_review: { variant: 'warning', icon: IconHourglass },
+    inbox_delivered: { variant: 'info', icon: IconHourglass },
     deleted_on_network: { variant: 'destructive-subtle', icon: IconTrashX },
 };
 
 /** How a status's badge looks and which lang key names it. */
-export const getPostStatusConfig = (status: PostDisplayStatus): StatusConfig => ({
+export const getPostStatusConfig = (
+    status: PostDisplayStatus,
+): StatusConfig => ({
     ...CONFIGS[status],
     labelKey: `posts.status.${status}`,
 });
@@ -59,7 +79,14 @@ export const postDisplayStatus = (post: PostCard): PostDisplayStatus => {
         return 'deleted_on_network';
     }
 
-    if (post.status === PostStatus.Publishing && post.publish_status === PublishStatus.PendingReview) {
+    if (post.publish_status === PublishStatus.InboxDelivered) {
+        return 'inbox_delivered';
+    }
+
+    if (
+        post.status === PostStatus.Publishing &&
+        post.publish_status === PublishStatus.PendingReview
+    ) {
         return 'pending_review';
     }
 

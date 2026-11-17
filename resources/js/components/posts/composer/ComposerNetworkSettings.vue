@@ -92,14 +92,27 @@ const AI_GENERATED_ROWS: Partial<
         metaKey: 'is_ai_generated',
         testId: 'instagram-ai-generated',
     },
-    [ContentType.TikTokVideo]: { metaKey: 'is_aigc', testId: 'tiktok-ai-generated' },
-    [ContentType.XPost]: { metaKey: 'is_ai_generated', testId: 'x-ai-generated' },
-    [ContentType.XPoll]: { metaKey: 'is_ai_generated', testId: 'x-ai-generated' },
+    [ContentType.TikTokVideo]: {
+        metaKey: 'is_aigc',
+        testId: 'tiktok-ai-generated',
+    },
+    [ContentType.XPost]: {
+        metaKey: 'is_ai_generated',
+        testId: 'x-ai-generated',
+    },
+    [ContentType.XPoll]: {
+        metaKey: 'is_ai_generated',
+        testId: 'x-ai-generated',
+    },
 };
 
-const aiRow = computed(
-    () => AI_GENERATED_ROWS[props.destination.content_type] ?? null,
-);
+const aiRow = computed(() => {
+    if (props.destination.meta.posting_mode === 'draft_upload') {
+        return null;
+    }
+
+    return AI_GENERATED_ROWS[props.destination.content_type] ?? null;
+});
 const aiGenerated = computed({
     get: (): boolean =>
         aiRow.value

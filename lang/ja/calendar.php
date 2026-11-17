@@ -16,6 +16,7 @@ return [
     'less' => '閉じる',
     'empty_day' => 'この日の予定はありません。',
     'post_status' => [
+        'inbox_delivered' => 'TikTok受信箱に配信済み',
         'draft' => '下書き',
         'pending_approval' => '承認待ち',
         'queue' => 'キュー内',
