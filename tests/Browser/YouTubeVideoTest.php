@@ -89,6 +89,23 @@ test('youtube video composer saves auxiliary uploads and shows its planner forma
         $page->click('@composer-view-edit');
     }
 
+    $page->script(<<<'JS'
+        (() => {
+            const input = document.querySelector('[data-testid="youtube-subtitle-language"]');
+            input.value = '';
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+        })();
+    JS);
+    $page->click('@composer-save-draft');
+    waitFor($page, '@youtube-validation-errors');
+    $page->assertSeeIn('@youtube-validation-errors', __('posts.form.youtube.language', [], $locale));
+    $page->script(<<<'JS'
+        (() => {
+            const input = document.querySelector('[data-testid="youtube-subtitle-language"]');
+            input.value = 'en';
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+        })();
+    JS);
     $page->click('@composer-save-draft')->assertMissing('@post-composer-dialog');
     $post->refresh();
     expect($post->content_type)->toBe(ContentType::YouTubeVideo);

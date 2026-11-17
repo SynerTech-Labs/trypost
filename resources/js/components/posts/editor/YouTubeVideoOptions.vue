@@ -7,7 +7,7 @@ import SettingsRow from '@/components/posts/editor/SettingsRow.vue';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
-import { useMetaErrors } from '@/composables/useMetaErrors';
+import { usePageErrors } from '@/composables/usePageErrors';
 import { filled, isString } from '@/lib/helpers';
 import { storeChunked } from '@/routes/app/media';
 import { account as composerAccount } from '@/routes/app/posts/composer';
@@ -26,9 +26,22 @@ const props = defineProps<{
     meta: Record<string, unknown>;
     disabled: boolean;
 }>();
-const metaError = useMetaErrors(() => props.platformIndex);
-const thumbnailError = metaError('youtube_thumbnail.0');
-const captionsError = metaError('youtube_captions');
+const pageErrors = usePageErrors();
+const validationErrors = computed(() => {
+    const messages: string[] = [];
+    const batchPrefix = `destinations.${props.platformIndex}.meta.youtube_`;
+    for (const [key, message] of Object.entries(pageErrors.value)) {
+        if (key.startsWith(batchPrefix)) {
+            messages.push(message);
+            continue;
+        }
+        if (key.startsWith('meta.youtube_')) {
+            messages.push(message);
+        }
+    }
+    return [...new Set(messages)];
+});
+const hasValidationErrors = computed(() => filled(validationErrors.value));
 const emit = defineEmits<{
     'update:meta': [value: Record<string, unknown>];
     busy: [value: boolean];
@@ -198,7 +211,6 @@ const thumbnailFilename = computed(() => {
     <div class="contents">
         <SettingsRow :label="$t('posts.form.youtube.thumbnail')" align-top>
             <div class="space-y-2">
-                <InputError :message="thumbnailError" />
                 <input
                     type="file"
                     accept="image/jpeg,image/png"
@@ -229,7 +241,6 @@ const thumbnailFilename = computed(() => {
         </SettingsRow>
         <SettingsRow :label="$t('posts.form.youtube.subtitles')" align-top>
             <div class="space-y-3">
-                <InputError :message="captionsError" />
                 <input
                     type="file"
                     accept=".srt,.vtt"
@@ -311,6 +322,16 @@ const thumbnailFilename = computed(() => {
         </SettingsRow>
         <SettingsRow>
             <div class="space-y-1">
+                <div
+                    v-if="hasValidationErrors"
+                    data-testid="youtube-validation-errors"
+                >
+                    <InputError
+                        v-for="message in validationErrors"
+                        :key="message"
+                        :message="message"
+                    />
+                </div>
                 <p v-if="uploading" role="status" class="text-sm">
                     {{ $t('common.loading') }}
                 </p>
