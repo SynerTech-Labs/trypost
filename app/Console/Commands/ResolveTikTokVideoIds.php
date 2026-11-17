@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Enums\Post\PublishStatus;
+use App\Enums\SocialAccount\Platform;
 use App\Enums\TikTok\PrivacyLevel;
+use App\Jobs\ReconcileTikTokDraft;
 use App\Jobs\ResolveTikTokVideoId;
 use App\Models\Post;
 use Illuminate\Console\Command;
@@ -30,6 +33,20 @@ class ResolveTikTokVideoIds extends Command
 
     public function handle(): int
     {
+        Post::query()
+            ->where('platform', Platform::TikTok)
+            ->where('meta->posting_mode', 'draft_upload')
+            ->whereIn('publish_status', [PublishStatus::InboxDelivered, PublishStatus::Published])
+            ->where('submitted_at', '>', now()->subDays(ReconcileTikTokDraft::TRACK_WITHIN_DAYS))
+            ->whereNotNull('error_context->tiktok_publish_id')
+            ->whereHas('socialAccount', fn (Builder $query): Builder => $query->connected())
+            ->where(function (Builder $query): void {
+                $query->whereNull('last_reconciled_at')
+                    ->orWhere('last_reconciled_at', '<=', now()->subHour());
+            })
+            ->lazyById()
+            ->each(fn (Post $post) => ReconcileTikTokDraft::dispatch($post));
+
         Post::query()
             ->publishedToTikTok()
             ->where('meta->privacy_level', PrivacyLevel::PublicToEveryone->value)

@@ -19,6 +19,7 @@ use App\Enums\SocialAccount\Platform;
 use App\Enums\TikTok\PrivacyLevel;
 use App\Observers\PostObserver;
 use App\Support\Media\MediaCopyBatch;
+use App\Support\Social\PublishCheckpoint;
 use Carbon\CarbonInterface;
 use Database\Factories\PostFactory;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
@@ -471,6 +472,10 @@ class Post extends Model
      */
     public function awaitsTikTokVideoId(): bool
     {
+        if ($this->sendsTikTokDraft()) {
+            return false;
+        }
+
         return $this->platform === Platform::TikTok
             && $this->origin === Origin::TryPost
             && $this->publish_status === PublishStatus::Published
@@ -544,6 +549,29 @@ class Post extends Model
     public function markPublicationPublishing(): void
     {
         $this->writePublication(['publish_status' => PublishStatus::Publishing, 'retry_at' => null]);
+    }
+
+    public function sendsTikTokDraft(): bool
+    {
+        return $this->platform === Platform::TikTok
+            && data_get($this->meta, 'posting_mode') === 'draft_upload';
+    }
+
+    public function markPublicationInboxDelivered(string $publishId): void
+    {
+        $this->writePublication([
+            'publish_status' => PublishStatus::InboxDelivered,
+            'platform_post_id' => $publishId,
+            'platform_url' => null,
+            'submitted_at' => $this->submitted_at ?? now(),
+            'published_at' => null,
+            'retry_at' => null,
+            'error_message' => null,
+            'error_context' => [
+                ...($this->error_context ?? []),
+                PublishCheckpoint::TIKTOK_STATUS => 'SEND_TO_USER_INBOX',
+            ],
+        ]);
     }
 
     /**

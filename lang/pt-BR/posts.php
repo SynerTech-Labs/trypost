@@ -337,6 +337,16 @@ return [
         'content_exceeds_platform' => ':platform: longo demais por :over caracteres (máx :limit).',
         'hashtags_exceed_platform' => ':platform permite apenas :limit hashtags por post.',
         'tiktok' => [
+            'posting_mode' => 'Modo de publicação',
+            'direct_post' => 'Publicação direta',
+            'draft_upload' => 'Enviar aos rascunhos do TikTok',
+            'draft_hint' => 'No horário agendado, seu vídeo é enviado ao TikTok. Abra a notificação na caixa de entrada para publicar manualmente. Insira ou confirme a legenda, hashtags, privacidade e outros detalhes no TikTok. Sua legenda fica no TryPost.',
+            'draft_delivery_hint' => 'Abra a notificação no TikTok para concluir a publicação. O TryPost verifica a conclusão por até 30 dias.',
+            'draft_scope_required' => 'Reconecte seu canal do TikTok e conceda a permissão video.upload para enviar rascunhos.',
+            'draft_video_required' => 'Um rascunho do TikTok precisa de exatamente um vídeo.',
+            'draft_source_required' => 'Use uma URL de vídeo HTTPS do domínio ou prefixo verificado no TikTok, acessível por pelo menos uma hora.',
+            'draft_unconfirmed' => 'O TikTok não confirmou a transferência. Confira sua caixa de entrada no TikTok antes de enviar novamente.',
+            'copy_caption' => 'Copiar legenda',
             'privacy_level' => 'Visibilidade',
             'privacy_placeholder' => 'Selecione quem pode ver este post',
             'privacy' => [
@@ -661,6 +671,7 @@ return [
     ],
 
     'status' => [
+        'inbox_delivered' => 'Na caixa do TikTok',
         'pending' => 'Pendente',
         'draft' => 'Rascunho',
         'pending_approval' => 'Pendente',

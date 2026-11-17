@@ -337,6 +337,16 @@ return [
         'content_exceeds_platform' => ':platform: troppo lungo di :over caratteri (max :limit).',
         'hashtags_exceed_platform' => ':platform consente solo :limit hashtag per post.',
         'tiktok' => [
+            'posting_mode' => 'Modalità di pubblicazione',
+            'direct_post' => 'Pubblicazione diretta',
+            'draft_upload' => 'Invia alle bozze di TikTok',
+            'draft_hint' => 'All’ora programmata il video viene inviato a TikTok. Apri la notifica nella posta in arrivo per pubblicarlo manualmente. Inserisci o conferma testo, hashtag, privacy e altri dettagli in TikTok. Il testo resta in TryPost.',
+            'draft_delivery_hint' => 'Apri la notifica in TikTok per completare la pubblicazione. TryPost verifica il completamento per un massimo di 30 giorni.',
+            'draft_scope_required' => 'Ricollega il canale TikTok e concedi il permesso video.upload per inviare bozze.',
+            'draft_video_required' => 'Una bozza TikTok richiede esattamente un video.',
+            'draft_source_required' => 'Usa un URL video HTTPS del dominio o prefisso verificato su TikTok, accessibile per almeno un’ora.',
+            'draft_unconfirmed' => 'TikTok non ha confermato il trasferimento. Controlla la posta in arrivo di TikTok prima di inviarlo di nuovo.',
+            'copy_caption' => 'Copia testo',
             'privacy_level' => 'Visibilità',
             'privacy_placeholder' => 'Seleziona chi può vedere questo post',
             'privacy' => [
@@ -661,6 +671,7 @@ return [
     ],
 
     'status' => [
+        'inbox_delivered' => 'Nella posta di TikTok',
         'pending' => 'In attesa',
         'draft' => 'Bozza',
         'pending_approval' => 'In attesa',

@@ -37,7 +37,7 @@ class PostPlatformMetaRules
      * Keys TryPost writes itself once a post is live (Telegram reactions): never
      * taken from a request, and kept when the post's settings are edited.
      */
-    public const SYSTEM_KEYS = ['reactions', 'youtube_operations'];
+    public const SYSTEM_KEYS = ['reactions', 'youtube_operations', 'tiktok_public_post_ids'];
 
     /** What an Instagram music pick stores; anything else sent with it is dropped. */
     private const array INSTAGRAM_AUDIO_FIELDS = ['id', 'title', 'artist', 'cover_url', 'preview_url', 'audio_volume', 'video_volume'];
@@ -50,7 +50,7 @@ class PostPlatformMetaRules
      * clients by every tool that schedules or publishes, so a new rule is
      * written here once.
      */
-    public const SCHEDULING_REQUIREMENTS = 'Before a post can be scheduled or published it needs: TikTok meta.privacy_level (get-tiktok-creator-info-tool), Pinterest meta.board_id (list-pinterest-boards-tool), Discord meta.channel_id (list-discord-channels-tool), Google Business events and offers meta.event (title and dates), YouTube a title (meta.title, or the first line of the text), an X poll (content_type x_poll) meta.poll with at least 2 options and duration_minutes plus text as its question (a reply poll in meta.thread_replies needs the same, its text being the question); list-content-types-tool lists the TikTok, Pinterest and Discord ones per platform as required_meta. A scheduled or published post also needs text or media; an X poll needs text and takes no media.';
+    public const SCHEDULING_REQUIREMENTS = 'Before a post can be scheduled or published it needs: TikTok Direct Post meta.privacy_level (get-tiktok-creator-info-tool); tiktok_video may instead use meta.posting_mode=draft_upload with video.upload permission, which sends only the video at the scheduled time and requires the creator to open the TikTok inbox notification and manually enter or confirm caption, hashtags, privacy and other details; inbox_delivered is not published, Pinterest meta.board_id (list-pinterest-boards-tool), Discord meta.channel_id (list-discord-channels-tool), Google Business events and offers meta.event (title and dates), YouTube a title (meta.title, or the first line of the text), an X poll (content_type x_poll) meta.poll with at least 2 options and duration_minutes plus text as its question (a reply poll in meta.thread_replies needs the same, its text being the question); list-content-types-tool lists the TikTok, Pinterest and Discord ones per platform as required_meta. A scheduled or published post also needs text or media; an X poll needs text and takes no media.';
 
     /** An Instagram username, with or without its leading @. */
     public const INSTAGRAM_USERNAME_PATTERN = '/^@?[A-Za-z0-9._]{1,30}$/';
@@ -111,6 +111,7 @@ class PostPlatformMetaRules
             "{$prefix}.document_title" => ['sometimes', 'nullable', 'string', 'max:300'],
 
             "{$prefix}.privacy_level" => ['sometimes', 'nullable', 'string', Rule::enum(PrivacyLevel::class)],
+            "{$prefix}.posting_mode" => ['sometimes', 'string', Rule::in(['direct_post', 'draft_upload'])],
             "{$prefix}.auto_add_music" => ['sometimes', 'boolean'],
             "{$prefix}.allow_comments" => ['sometimes', 'boolean'],
             "{$prefix}.allow_duet" => ['sometimes', 'boolean'],
@@ -291,7 +292,7 @@ class PostPlatformMetaRules
     {
         return implode(' ', [
             'Per-platform metadata. A thread on X, Bluesky or Mastodon, or a comment on LinkedIn, is meta.thread_replies (see below).',
-            'TikTok: privacy_level PUBLIC_TO_EVERYONE|MUTUAL_FOLLOW_FRIENDS|FOLLOWER_OF_CREATOR|SELF_ONLY (required to publish; call get-tiktok-creator-info-tool first and pick one of its privacy_level_options, and keep allow_comments/allow_duet/allow_stitch false when it reports them disabled) + flags allow_comments, disclose (commercial content), brand_content_toggle (paid partnership), brand_organic_toggle (your own brand); on tiktok_video also allow_duet, allow_stitch and is_aigc (AI-generated content label), on tiktok_photo also auto_add_music. SELF_ONLY cannot be combined with brand_content_toggle.',
+            'TikTok: posting_mode direct_post (default, including legacy posts) or draft_upload (tiktok_video only). draft_upload requires video.upload, sends video source only, preserves the caption in TryPost, and needs manual completion from the TikTok inbox notification. The scheduled time is the transfer time, not public publication. No privacy_level is required for draft_upload. publish_status inbox_delivered means delivered and awaiting the creator, never published. Checks stop after 30 days; published completion may have no public URL, and meta.tiktok_public_post_ids may contain multiple public IDs. Direct Post: privacy_level PUBLIC_TO_EVERYONE|MUTUAL_FOLLOW_FRIENDS|FOLLOWER_OF_CREATOR|SELF_ONLY (required to publish; call get-tiktok-creator-info-tool first and pick one of its privacy_level_options, and keep allow_comments/allow_duet/allow_stitch false when it reports them disabled) + flags allow_comments, disclose (commercial content), brand_content_toggle (paid partnership), brand_organic_toggle (your own brand); on tiktok_video also allow_duet, allow_stitch and is_aigc (AI-generated content label), on tiktok_photo also auto_add_music. SELF_ONLY cannot be combined with brand_content_toggle.',
             'Mastodon: spoiler_text (content warning, ≤500; counts toward the 500-character post limit).',
             'Pinterest: board_id (required to publish — call list-pinterest-boards-tool first, or create-pinterest-board-tool), title (≤100), link (destination URL). Pin description comes from the post content; a video pin cover frame is the media item meta.cover_offset_ms.',
             'Discord: channel_id (required to publish — call list-discord-channels-tool first), mentions ([{token,label}], e.g. {token: "@everyone"} or {token: "<@&roleId>"}), embeds (up to 10 [{title ≤256, description ≤4096, url, image (URL), color (#RRGGBB)}]).',
@@ -436,6 +437,12 @@ class PostPlatformMetaRules
      */
     public static function formatViolation(?Platform $platform, mixed $meta, ContentType|string|null $contentType = null): ?array
     {
+        if (data_get($meta, 'posting_mode') === 'draft_upload') {
+            if ($platform !== Platform::TikTok || ContentType::resolve($contentType) !== ContentType::TikTokVideo) {
+                return ['posting_mode', __('posts.form.tiktok.draft_video_required')];
+            }
+        }
+
         if ($platform === Platform::YouTube) {
             return YouTubeMetadata::violation($meta);
         }
@@ -456,6 +463,10 @@ class PostPlatformMetaRules
     {
         $platform = $target instanceof SocialAccount ? $target->platform : $target;
         $type = ContentType::resolve($contentType);
+        if ($platform === Platform::TikTok && data_get($meta, 'posting_mode') === 'draft_upload') {
+            return self::formatViolation($platform, $meta, $contentType);
+        }
+
         $threadViolation = ThreadReplies::violation($target, $meta);
 
         if ($threadViolation !== null) {

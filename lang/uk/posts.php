@@ -337,6 +337,16 @@ return [
         'content_exceeds_platform' => ':platform: перевищення на :over симв. (макс. :limit).',
         'hashtags_exceed_platform' => ':platform дозволяє не більше :limit хештегів у публікації.',
         'tiktok' => [
+            'posting_mode' => 'Спосіб публікації',
+            'direct_post' => 'Пряма публікація',
+            'draft_upload' => 'До чернеток TikTok',
+            'draft_hint' => 'У запланований час відео буде надіслано до TikTok. Відкрийте сповіщення у вхідних, щоб опублікувати його вручну. Введіть або підтвердьте опис, хештеги, приватність та інші дані в TikTok. Опис збережеться в TryPost.',
+            'draft_delivery_hint' => 'Відкрийте сповіщення в TikTok, щоб завершити публікацію. TryPost перевіряє її завершення до 30 днів.',
+            'draft_scope_required' => 'Підключіть канал TikTok знову та надайте дозвіл video.upload для надсилання чернеток.',
+            'draft_video_required' => 'Для чернетки TikTok потрібне рівно одне відео.',
+            'draft_source_required' => 'Використовуйте HTTPS-посилання на відео в підтвердженому TikTok домені або префіксі URL. Воно має бути доступне щонайменше годину.',
+            'draft_unconfirmed' => 'TikTok не підтвердив передавання. Перевірте вхідні TikTok перед повторним надсиланням.',
+            'copy_caption' => 'Копіювати опис',
             'privacy_level' => 'Доступ',
             'privacy_placeholder' => 'Виберіть, хто може бачити цей пост',
             'privacy' => [
@@ -661,6 +671,7 @@ return [
     ],
 
     'status' => [
+        'inbox_delivered' => 'У вхідних TikTok',
         'pending' => 'Очікує',
         'draft' => 'Чернетка',
         'pending_approval' => 'Очікує',

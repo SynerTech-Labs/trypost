@@ -30,6 +30,15 @@ class TikTokController extends SocialController
         return (array) config('trypost.platforms.tiktok.scopes');
     }
 
+    protected function refusalForMissingPublishScopes(array $granted): ?RedirectResponse
+    {
+        if (in_array('video.upload', $granted, true)) {
+            return null;
+        }
+
+        return parent::refusalForMissingPublishScopes($granted);
+    }
+
     public function connect(Request $request): Response
     {
         $this->ensurePlatformEnabled();

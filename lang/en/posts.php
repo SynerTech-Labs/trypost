@@ -337,6 +337,16 @@ return [
         'content_exceeds_platform' => ':platform: too long by :over chars (max :limit).',
         'hashtags_exceed_platform' => ':platform only allows :limit hashtags per post.',
         'tiktok' => [
+            'posting_mode' => 'Posting mode',
+            'direct_post' => 'Direct Post',
+            'draft_upload' => 'Send to TikTok drafts',
+            'draft_hint' => 'The scheduled time sends your video to TikTok. Open the inbox notification to publish manually. Enter or confirm your caption, hashtags, privacy and other details in TikTok. Your caption stays in TryPost.',
+            'draft_delivery_hint' => 'Open TikTok and use the inbox notification to finish publishing. TryPost checks for completion for up to 30 days.',
+            'draft_scope_required' => 'Reconnect your TikTok channel and grant video.upload permission to send drafts.',
+            'draft_video_required' => 'TikTok drafts need exactly one video.',
+            'draft_source_required' => 'Use an HTTPS video URL on your verified TikTok domain or URL prefix. Keep it accessible for at least one hour.',
+            'draft_unconfirmed' => 'TikTok did not confirm this transfer. Check your TikTok inbox before sending it again.',
+            'copy_caption' => 'Copy caption',
             'privacy_level' => 'Visibility',
             'privacy_placeholder' => 'Select who can view this post',
             'privacy' => [
@@ -661,6 +671,7 @@ return [
     ],
 
     'status' => [
+        'inbox_delivered' => 'In TikTok inbox',
         'pending' => 'Pending',
         'draft' => 'Draft',
         'pending_approval' => 'Pending',

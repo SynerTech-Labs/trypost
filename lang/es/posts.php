@@ -337,6 +337,16 @@ return [
         'content_exceeds_platform' => ':platform: demasiado largo por :over caracteres (máx :limit).',
         'hashtags_exceed_platform' => ':platform solo permite :limit hashtags por publicación.',
         'tiktok' => [
+            'posting_mode' => 'Modo de publicación',
+            'direct_post' => 'Publicación directa',
+            'draft_upload' => 'Enviar a borradores de TikTok',
+            'draft_hint' => 'A la hora programada, tu vídeo se envía a TikTok. Abre la notificación de la bandeja de entrada para publicarlo manualmente. Introduce o confirma el texto, los hashtags, la privacidad y los demás detalles en TikTok. Tu texto se conserva en TryPost.',
+            'draft_delivery_hint' => 'Abre la notificación en TikTok para terminar de publicar. TryPost comprueba la publicación durante un máximo de 30 días.',
+            'draft_scope_required' => 'Vuelve a conectar tu canal de TikTok y concede el permiso video.upload para enviar borradores.',
+            'draft_video_required' => 'Los borradores de TikTok necesitan exactamente un vídeo.',
+            'draft_source_required' => 'Usa una URL de vídeo HTTPS de tu dominio o prefijo verificado en TikTok. Debe estar disponible al menos una hora.',
+            'draft_unconfirmed' => 'TikTok no confirmó la transferencia. Revisa tu bandeja de entrada de TikTok antes de volver a enviarla.',
+            'copy_caption' => 'Copiar texto',
             'privacy_level' => 'Visibilidad',
             'privacy_placeholder' => 'Selecciona quién puede ver esta publicación',
             'privacy' => [
@@ -661,6 +671,7 @@ return [
     ],
 
     'status' => [
+        'inbox_delivered' => 'En la bandeja de TikTok',
         'pending' => 'Pendiente',
         'draft' => 'Borrador',
         'pending_approval' => 'Pendiente',

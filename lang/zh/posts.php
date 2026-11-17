@@ -337,6 +337,16 @@ return [
         'content_exceeds_platform' => ':platform：超出 :over 个字符（上限 :limit）。',
         'hashtags_exceed_platform' => ':platform 每条帖子最多允许 :limit 个话题标签。',
         'tiktok' => [
+            'posting_mode' => '发布方式',
+            'direct_post' => '直接发布',
+            'draft_upload' => '发送到 TikTok 草稿',
+            'draft_hint' => '预约时间是将视频发送到 TikTok 的时间。请打开收件箱通知，手动完成发布。文案、话题标签、隐私等设置需要在 TikTok 中输入或确认。文案会保留在 TryPost 中。',
+            'draft_delivery_hint' => '请打开 TikTok 通知完成发布。TryPost 最多检查 30 天以确认发布状态。',
+            'draft_scope_required' => '请重新连接 TikTok 频道并授予 video.upload 权限以发送草稿。',
+            'draft_video_required' => 'TikTok 草稿需要且仅能包含一个视频。',
+            'draft_source_required' => '请使用 TikTok 已验证域名或 URL 前缀下的 HTTPS 视频链接，并保持至少一小时可访问。',
+            'draft_unconfirmed' => 'TikTok 尚未确认传输。再次发送前，请检查 TikTok 收件箱。',
+            'copy_caption' => '复制文案',
             'privacy_level' => '公开范围',
             'privacy_placeholder' => '选择谁可以查看此帖子',
             'privacy' => [
@@ -661,6 +671,7 @@ return [
     ],
 
     'status' => [
+        'inbox_delivered' => '已送达 TikTok 收件箱',
         'pending' => '等待中',
         'draft' => '草稿',
         'pending_approval' => '待审批',

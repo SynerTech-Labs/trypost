@@ -337,6 +337,16 @@ return [
         'content_exceeds_platform' => ':platform: :over자 초과 (최대 :limit자).',
         'hashtags_exceed_platform' => ':platform은(는) 게시물당 해시태그를 :limit개까지만 허용합니다.',
         'tiktok' => [
+            'posting_mode' => '게시 방식',
+            'direct_post' => '바로 게시',
+            'draft_upload' => 'TikTok 초안으로 보내기',
+            'draft_hint' => '예약 시간에 동영상이 TikTok으로 전송됩니다. 받은 편지함 알림을 열어 직접 게시하세요. 캡션, 해시태그, 공개 범위 등은 TikTok에서 입력하거나 확인해야 합니다. 캡션은 TryPost에 보관됩니다.',
+            'draft_delivery_hint' => 'TikTok 알림을 열어 게시를 완료하세요. TryPost는 최대 30일 동안 게시 완료 여부를 확인합니다.',
+            'draft_scope_required' => 'TikTok 채널을 다시 연결하고 초안 전송을 위한 video.upload 권한을 허용하세요.',
+            'draft_video_required' => 'TikTok 초안에는 동영상 한 개가 필요합니다.',
+            'draft_source_required' => 'TikTok에서 확인된 도메인 또는 URL 접두사의 HTTPS 동영상 URL을 사용하고 최소 1시간 동안 접근 가능하게 유지하세요.',
+            'draft_unconfirmed' => 'TikTok이 전송을 확인하지 않았습니다. 다시 보내기 전에 TikTok 받은 편지함을 확인하세요.',
+            'copy_caption' => '캡션 복사',
             'privacy_level' => '공개 상태',
             'privacy_placeholder' => '이 게시물을 볼 수 있는 사람을 선택하세요',
             'privacy' => [
@@ -661,6 +671,7 @@ return [
     ],
 
     'status' => [
+        'inbox_delivered' => 'TikTok 받은 편지함에 도착',
         'pending' => '대기 중',
         'draft' => '초안',
         'pending_approval' => '승인 대기',

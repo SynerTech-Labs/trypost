@@ -337,6 +337,16 @@ return [
         'content_exceeds_platform' => ':platform : trop long de :over caractères (max :limit).',
         'hashtags_exceed_platform' => ':platform n’autorise que :limit hashtags par publication.',
         'tiktok' => [
+            'posting_mode' => 'Mode de publication',
+            'direct_post' => 'Publication directe',
+            'draft_upload' => 'Envoyer aux brouillons TikTok',
+            'draft_hint' => 'À l’heure prévue, votre vidéo est envoyée à TikTok. Ouvrez la notification dans votre boîte de réception pour publier. Saisissez ou confirmez la légende, les hashtags, la confidentialité et les autres détails dans TikTok. Votre légende reste dans TryPost.',
+            'draft_delivery_hint' => 'Ouvrez la notification dans TikTok pour publier. TryPost vérifie la publication pendant 30 jours au maximum.',
+            'draft_scope_required' => 'Reconnectez votre chaîne TikTok et accordez l’autorisation video.upload pour envoyer des brouillons.',
+            'draft_video_required' => 'Un brouillon TikTok nécessite une seule vidéo.',
+            'draft_source_required' => 'Utilisez une URL vidéo HTTPS de votre domaine ou préfixe vérifié par TikTok, accessible pendant au moins une heure.',
+            'draft_unconfirmed' => 'TikTok n’a pas confirmé le transfert. Vérifiez votre boîte de réception TikTok avant de renvoyer la vidéo.',
+            'copy_caption' => 'Copier la légende',
             'privacy_level' => 'Visibilité',
             'privacy_placeholder' => 'Sélectionnez qui peut voir cette publication',
             'privacy' => [
@@ -661,6 +671,7 @@ return [
     ],
 
     'status' => [
+        'inbox_delivered' => 'Dans la boîte TikTok',
         'pending' => 'En attente',
         'draft' => 'Brouillon',
         'pending_approval' => 'En attente',

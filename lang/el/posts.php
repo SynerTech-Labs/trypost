@@ -337,6 +337,16 @@ return [
         'content_exceeds_platform' => ':platform: υπερβαίνει κατά :over χαρακτήρες (μέγ. :limit).',
         'hashtags_exceed_platform' => 'Το :platform επιτρέπει μόνο :limit hashtag ανά ανάρτηση.',
         'tiktok' => [
+            'posting_mode' => 'Τρόπος δημοσίευσης',
+            'direct_post' => 'Άμεση δημοσίευση',
+            'draft_upload' => 'Στα πρόχειρα του TikTok',
+            'draft_hint' => 'Την προγραμματισμένη ώρα το βίντεο αποστέλλεται στο TikTok. Ανοίξτε την ειδοποίηση στα εισερχόμενα για χειροκίνητη δημοσίευση. Συμπληρώστε ή επιβεβαιώστε λεζάντα, hashtag, απόρρητο και άλλες λεπτομέρειες στο TikTok. Η λεζάντα παραμένει στο TryPost.',
+            'draft_delivery_hint' => 'Ανοίξτε την ειδοποίηση στο TikTok για να δημοσιεύσετε. Το TryPost ελέγχει την ολοκλήρωση για έως 30 ημέρες.',
+            'draft_scope_required' => 'Συνδέστε ξανά το κανάλι TikTok και παραχωρήστε την άδεια video.upload για αποστολή πρόχειρων.',
+            'draft_video_required' => 'Ένα πρόχειρο TikTok χρειάζεται ακριβώς ένα βίντεο.',
+            'draft_source_required' => 'Χρησιμοποιήστε URL βίντεο HTTPS από επαληθευμένο τομέα ή πρόθεμα URL στο TikTok, προσβάσιμο για τουλάχιστον μία ώρα.',
+            'draft_unconfirmed' => 'Το TikTok δεν επιβεβαίωσε τη μεταφορά. Ελέγξτε τα εισερχόμενά σας πριν το στείλετε ξανά.',
+            'copy_caption' => 'Αντιγραφή λεζάντας',
             'privacy_level' => 'Ορατότητα',
             'privacy_placeholder' => 'Επιλέξτε ποιος μπορεί να δει αυτή τη δημοσίευση',
             'privacy' => [
@@ -661,6 +671,7 @@ return [
     ],
 
     'status' => [
+        'inbox_delivered' => 'Στα εισερχόμενα TikTok',
         'pending' => 'Σε εκκρεμότητα',
         'draft' => 'Πρόχειρο',
         'pending_approval' => 'Σε αναμονή',

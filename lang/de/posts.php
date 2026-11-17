@@ -337,6 +337,16 @@ return [
         'content_exceeds_platform' => ':platform: um :over Zeichen zu lang (max. :limit).',
         'hashtags_exceed_platform' => ':platform erlaubt nur :limit Hashtags pro Beitrag.',
         'tiktok' => [
+            'posting_mode' => 'Veröffentlichung',
+            'direct_post' => 'Direkt veröffentlichen',
+            'draft_upload' => 'An TikTok-Entwürfe senden',
+            'draft_hint' => 'Zur geplanten Zeit wird dein Video an TikTok gesendet. Öffne die Benachrichtigung im Posteingang, um es manuell zu veröffentlichen. Gib Beschreibung, Hashtags, Sichtbarkeit und weitere Angaben in TikTok ein oder bestätige sie dort. Deine Beschreibung bleibt in TryPost.',
+            'draft_delivery_hint' => 'Öffne die Benachrichtigung in TikTok und veröffentliche das Video. TryPost prüft den Abschluss bis zu 30 Tage lang.',
+            'draft_scope_required' => 'Verbinde deinen TikTok-Kanal erneut und erteile die Berechtigung video.upload für Entwürfe.',
+            'draft_video_required' => 'Ein TikTok-Entwurf benötigt genau ein Video.',
+            'draft_source_required' => 'Verwende eine HTTPS-Video-URL deiner bei TikTok bestätigten Domain oder deines URL-Präfixes. Halte sie mindestens eine Stunde erreichbar.',
+            'draft_unconfirmed' => 'TikTok hat die Übertragung nicht bestätigt. Prüfe deinen TikTok-Posteingang vor dem erneuten Senden.',
+            'copy_caption' => 'Beschreibung kopieren',
             'privacy_level' => 'Sichtbarkeit',
             'privacy_placeholder' => 'Wähle, wer diesen Beitrag sehen kann',
             'privacy' => [
@@ -661,6 +671,7 @@ return [
     ],
 
     'status' => [
+        'inbox_delivered' => 'Im TikTok-Posteingang',
         'pending' => 'Ausstehend',
         'draft' => 'Entwurf',
         'pending_approval' => 'Ausstehend',

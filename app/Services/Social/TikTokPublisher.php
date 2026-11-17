@@ -84,6 +84,10 @@ class TikTokPublisher
 
         $this->accessToken = $account->access_token;
 
+        if ($post->sendsTikTokDraft()) {
+            return $this->uploadDraft($post);
+        }
+
         $pendingPublishId = PublishCheckpoint::tiktokPublishId($post->error_context);
 
         if ($pendingPublishId !== null) {
@@ -159,6 +163,157 @@ class TikTokPublisher
     private function getHttpClient(): PendingRequest
     {
         return $this->socialHttp()->asJson()->withToken($this->accessToken);
+    }
+
+    public function draftStatus(Post $post): array
+    {
+        $account = $post->socialAccount;
+
+        if ($account->needsProactiveTokenRefresh()) {
+            app(ConnectionVerifier::class)->refreshToken($account);
+        }
+
+        $this->accessToken = $account->access_token;
+
+        return $this->fetchDraftStatus($this->requirePublishId(PublishCheckpoint::tiktokPublishId($post->error_context)));
+    }
+
+    private function fetchDraftStatus(string $publishId): array
+    {
+        $response = $this->getHttpClient()->post("{$this->baseUrl}/post/publish/status/fetch/", [
+            'publish_id' => $publishId,
+        ]);
+
+        if ($response->failed() || ! in_array($response->json('error.code'), [null, 'ok'], true)) {
+            $this->handleApiError($response);
+        }
+
+        return (array) $response->json('data', []);
+    }
+
+    private function uploadDraft(Post $post): array
+    {
+        if (! in_array('video.upload', $post->socialAccount->scopes ?? [], true)) {
+            throw new TikTokPublishException(
+                userMessage: __('posts.form.tiktok.draft_scope_required'),
+                category: ErrorCategory::Permission,
+            );
+        }
+
+        $violation = PostPlatformMetaRules::formatViolation($post->platform, $post->meta, $post->content_type);
+
+        if ($violation !== null) {
+            throw new TikTokPublishException(userMessage: $violation[1], category: ErrorCategory::MediaFormat);
+        }
+
+        $publishId = PublishCheckpoint::tiktokPublishId($post->error_context);
+        $initAt = PublishCheckpoint::tiktokInitAt($post->error_context);
+
+        if ($publishId === null) {
+            if (data_get($post->error_context, 'tiktok_draft_init_attempted')) {
+                throw new TikTokPublishException(
+                    userMessage: __('posts.form.tiktok.draft_unconfirmed'),
+                    category: ErrorCategory::Unknown,
+                );
+            }
+
+            $video = $post->mediaItems->first();
+
+            if ($post->mediaItems->count() !== 1 || $video?->isVideo() !== true) {
+                throw new TikTokPublishException(
+                    userMessage: __('posts.form.tiktok.draft_video_required'),
+                    category: ErrorCategory::MediaFormat,
+                );
+            }
+
+            if (parse_url($video->url, PHP_URL_SCHEME) !== 'https') {
+                throw new TikTokPublishException(
+                    userMessage: __('posts.form.tiktok.draft_source_required'),
+                    category: ErrorCategory::MediaFormat,
+                );
+            }
+
+            $post->writePublication(['error_context' => [
+                ...($post->error_context ?? []),
+                'tiktok_draft_init_attempted' => true,
+                PublishCheckpoint::TIKTOK_INIT_AT => now()->toIso8601String(),
+            ]]);
+
+            $response = Http::asJson()->withToken($this->accessToken)->connectTimeout(10)->timeout(120)
+                ->post("{$this->baseUrl}/post/publish/inbox/video/init/", [
+                    'source_info' => ['source' => 'PULL_FROM_URL', 'video_url' => $video->url],
+                ]);
+
+            if ($response->failed() || ! in_array($response->json('error.code'), [null, 'ok'], true)) {
+                if ($response->clientError()) {
+                    $context = $post->error_context;
+                    unset($context['tiktok_draft_init_attempted']);
+                    $post->writePublication(['error_context' => $context]);
+                }
+
+                $this->handleApiError($response);
+            }
+
+            $publishId = $this->requirePublishId($response->json('data.publish_id'));
+            $initAt = $this->rememberPublishId($post, $publishId);
+            $this->waitForFirstStatusCheck();
+        }
+
+        $initAt ??= $this->rememberPublishId($post, $publishId);
+
+        try {
+            $data = $this->fetchDraftStatus($publishId);
+        } catch (TikTokPublishException|ConnectionException $exception) {
+            if ($exception instanceof TikTokPublishException && $exception->category === ErrorCategory::Permission) {
+                throw $exception;
+            }
+
+            throw $this->pendingPublishException($publishId, $initAt);
+        }
+
+        $status = PublishStatus::tryFrom((string) data_get($data, 'status'));
+
+        if ($status === PublishStatus::Failed) {
+            throw TikTokPublishException::fromFailReason((string) data_get($data, 'fail_reason', 'Unknown error'));
+        }
+
+        if ($status === PublishStatus::SendToUserInbox) {
+            return [
+                'id' => $publishId,
+                'url' => null,
+                'tiktok_status' => $status->value,
+            ];
+        }
+
+        if ($status === PublishStatus::PublishComplete) {
+            $publicIds = $this->publicPostIds($data);
+            $postId = array_first($publicIds);
+
+            return [
+                'id' => $postId ?? $publishId,
+                'url' => $postId === null ? null : self::postUrl($post->socialAccount, $postId),
+                'tiktok_status' => $status->value,
+                'tiktok_public_post_ids' => $publicIds,
+            ];
+        }
+
+        if ($initAt->lessThanOrEqualTo(now()->subSeconds(self::STATUS_WINDOW_SECONDS))) {
+            throw new TikTokPublishException(
+                userMessage: __('posts.form.tiktok.draft_unconfirmed'),
+                category: ErrorCategory::Unknown,
+            );
+        }
+
+        throw $this->pendingPublishException($publishId, $initAt, status: $status?->value);
+    }
+
+    public function publicPostIds(array $data): array
+    {
+        return collect((array) data_get($data, 'publicaly_available_post_id', []))
+            ->filter(fn (mixed $id): bool => is_int($id) || is_string($id))
+            ->map(fn (int|string $id): string => (string) $id)
+            ->filter(fn (string $id): bool => ctype_digit($id))
+            ->unique()->values()->all();
     }
 
     /**

@@ -10,6 +10,7 @@ enum PublishStatus: string
     case Publishing = 'publishing';
     case Retrying = 'retrying';
     case PendingReview = 'pending_review';
+    case InboxDelivered = 'inbox_delivered';
     case Published = 'published';
     case Failed = 'failed';
     case Rejected = 'rejected';
@@ -44,7 +45,7 @@ enum PublishStatus: string
     /** The publish job must not run again. Pending review waits on reconcile. */
     public function isClosed(): bool
     {
-        return $this->isFinished() || $this === self::PendingReview;
+        return $this->isFinished() || in_array($this, [self::PendingReview, self::InboxDelivered], true);
     }
 
     /** Still to be sent or being sent: pending, publishing or retrying. */

@@ -197,6 +197,26 @@ class PublishToSocialPlatform implements ShouldBeUnique, ShouldQueue
         $platformPostId = (string) data_get($result, 'id');
         $platformUrl = data_get($result, 'url');
 
+        if ($this->post->sendsTikTokDraft()) {
+            $context = $this->post->error_context;
+
+            if (data_get($result, 'tiktok_status') === \App\Enums\TikTok\PublishStatus::SendToUserInbox->value) {
+                $this->post->markPublicationInboxDelivered($platformPostId);
+                ReconcileTikTokDraft::dispatch($this->post)->delay(now()->addMinute())->afterCommit();
+
+                return;
+            }
+
+            $this->post->markPublicationPublished($platformPostId, $platformUrl);
+            $this->post->writePublication([
+                'submitted_at' => $this->post->submitted_at ?? now(),
+                'error_context' => $context,
+                'meta' => [...($this->post->meta ?? []), 'tiktok_public_post_ids' => data_get($result, 'tiktok_public_post_ids', [])],
+            ]);
+
+            return;
+        }
+
         // tryFrom, not fromApi: every other publisher omits `state`. fromApi(null)
         // is Processing, which would hold LinkedIn/X/… in pending review forever.
         $state = LocalPostState::tryFrom((string) data_get($result, 'state'));
@@ -236,8 +256,14 @@ class PublishToSocialPlatform implements ShouldBeUnique, ShouldQueue
 
     private function failForMissingScopes(): bool
     {
+        $requiredScopes = $this->post->platform->requiredPublishScopes();
+
+        if ($this->post->sendsTikTokDraft()) {
+            $requiredScopes = ['video.upload'];
+        }
+
         $missingScopes = array_values(array_diff(
-            $this->post->platform->requiredPublishScopes(),
+            $requiredScopes,
             $this->post->socialAccount->scopes ?? [],
         ));
 
@@ -246,7 +272,9 @@ class PublishToSocialPlatform implements ShouldBeUnique, ShouldQueue
         }
 
         $this->failAndFinalize(
-            'Missing permissions: '.implode(', ', $missingScopes).'. Please reconnect your account.',
+            $this->post->sendsTikTokDraft()
+                ? __('posts.form.tiktok.draft_scope_required')
+                : 'Missing permissions: '.implode(', ', $missingScopes).'. Please reconnect your account.',
             [
                 'category' => ErrorCategory::Permission->value,
                 'missing_scopes' => $missingScopes,
@@ -391,6 +419,10 @@ class PublishToSocialPlatform implements ShouldBeUnique, ShouldQueue
      */
     private function waitForLimitRetry(SocialPublishException $e): bool
     {
+        if ($this->post->sendsTikTokDraft() && PublishCheckpoint::tiktokPublishId($this->post->error_context) !== null) {
+            return false;
+        }
+
         $previousContext = $this->post->error_context ?? [];
         $retries = LimitRetryPolicy::retriesSoFar($previousContext);
         $retryAt = LimitRetryPolicy::nextAttemptAt($retries, $e->retryAt);
@@ -479,6 +511,11 @@ class PublishToSocialPlatform implements ShouldBeUnique, ShouldQueue
         return array_values(array_map(function (mixed $item): array {
             $item = is_array($item) ? $item : [];
             $url = data_get($item, 'url');
+
+            if ($this->post->sendsTikTokDraft() && is_string($url)) {
+                $url = explode('?', $url, 2)[0];
+            }
+
             $mimeType = data_get($item, 'mime_type');
             $path = data_get($item, 'original_filename') ?? data_get($item, 'path');
             $type = MediaType::classify(

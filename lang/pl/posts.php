@@ -337,6 +337,16 @@ return [
         'content_exceeds_platform' => ':platform: za długie o :over znaków (maks. :limit).',
         'hashtags_exceed_platform' => ':platform pozwala tylko na :limit hashtagów w poście.',
         'tiktok' => [
+            'posting_mode' => 'Tryb publikacji',
+            'direct_post' => 'Publikacja bezpośrednia',
+            'draft_upload' => 'Wyślij do szkiców TikTok',
+            'draft_hint' => 'O zaplanowanej godzinie film zostanie wysłany do TikToka. Otwórz powiadomienie w skrzynce odbiorczej, aby opublikować go ręcznie. Wpisz lub potwierdź opis, hashtagi, prywatność i inne szczegóły w TikToku. Opis pozostaje w TryPost.',
+            'draft_delivery_hint' => 'Otwórz powiadomienie w TikToku, aby dokończyć publikację. TryPost sprawdza jej zakończenie przez maksymalnie 30 dni.',
+            'draft_scope_required' => 'Połącz ponownie kanał TikTok i udziel uprawnienia video.upload, aby wysyłać szkice.',
+            'draft_video_required' => 'Szkic TikTok wymaga dokładnie jednego filmu.',
+            'draft_source_required' => 'Użyj adresu HTTPS filmu w domenie lub prefiksie zweryfikowanym przez TikTok. Musi być dostępny przez co najmniej godzinę.',
+            'draft_unconfirmed' => 'TikTok nie potwierdził przesyłania. Sprawdź skrzynkę TikToka przed ponownym wysłaniem.',
+            'copy_caption' => 'Kopiuj opis',
             'privacy_level' => 'Widoczność',
             'privacy_placeholder' => 'Wybierz, kto może zobaczyć ten post',
             'privacy' => [
@@ -661,6 +671,7 @@ return [
     ],
 
     'status' => [
+        'inbox_delivered' => 'W skrzynce TikTok',
         'pending' => 'Oczekuje',
         'draft' => 'Szkic',
         'pending_approval' => 'Oczekuje',

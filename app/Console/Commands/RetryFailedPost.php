@@ -129,6 +129,10 @@ class RetryFailedPost extends Command
      */
     private function resumableContext(?array $context): ?array
     {
+        if (data_get($context, 'tiktok_draft_init_attempted')) {
+            return $context;
+        }
+
         $kept = [];
         $thread = data_get($context, ThreadProgress::KEY);
 

@@ -337,6 +337,16 @@ return [
         'content_exceeds_platform' => ':platform: :over 文字超過しています（最大 :limit）。',
         'hashtags_exceed_platform' => ':platform では 1 投稿につきハッシュタグは :limit 個までです。',
         'tiktok' => [
+            'posting_mode' => '投稿方法',
+            'direct_post' => '直接投稿',
+            'draft_upload' => 'TikTokの下書きに送信',
+            'draft_hint' => '予約時刻に動画をTikTokへ送信します。受信箱の通知を開き、手動で投稿してください。キャプション、ハッシュタグ、公開範囲などはTikTokで入力・確認します。キャプションはTryPostに残ります。',
+            'draft_delivery_hint' => 'TikTokの通知を開いて投稿を完了してください。TryPostは最大30日間、投稿の完了を確認します。',
+            'draft_scope_required' => 'TikTokチャンネルを再接続し、下書きの送信に必要なvideo.upload権限を許可してください。',
+            'draft_video_required' => 'TikTokの下書きには動画が1本必要です。',
+            'draft_source_required' => 'TikTokで確認済みのドメインまたはURLプレフィックスのHTTPS動画URLを使用し、1時間以上アクセス可能にしてください。',
+            'draft_unconfirmed' => 'TikTokから転送の確認が届いていません。再送信する前にTikTokの受信箱を確認してください。',
+            'copy_caption' => 'キャプションをコピー',
             'privacy_level' => '公開設定',
             'privacy_placeholder' => 'この投稿を見られる範囲を選択',
             'privacy' => [
@@ -661,6 +671,7 @@ return [
     ],
 
     'status' => [
+        'inbox_delivered' => 'TikTok受信箱に配信済み',
         'pending' => '保留中',
         'draft' => '下書き',
         'pending_approval' => '承認待ち',

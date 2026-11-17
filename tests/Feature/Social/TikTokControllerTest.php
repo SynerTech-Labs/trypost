@@ -99,7 +99,7 @@ test('tiktok connect redirects to oauth provider', function () {
     expect(PendingConnection::current()?->workspaceId())->toBe($this->workspace->id);
 });
 
-test('tiktok oauth callback creates account', function () {
+test('tiktok oauth callback creates an account with direct post or draft upload permission', function (array $scopes) {
     startSocialConnect($this->workspace->id, Platform::TikTok);
 
     $socialiteUser = Mockery::mock(SocialiteUser::class);
@@ -110,7 +110,7 @@ test('tiktok oauth callback creates account', function () {
     $socialiteUser->token = 'test-access-token';
     $socialiteUser->refreshToken = 'test-refresh-token';
     $socialiteUser->expiresIn = 86400;
-    $socialiteUser->approvedScopes = ['user.info.basic', 'user.info.profile', 'video.publish'];
+    $socialiteUser->approvedScopes = $scopes;
 
     $socialiteMock = Mockery::mock();
     $socialiteMock->shouldReceive('scopes')->andReturn($socialiteMock);
@@ -133,7 +133,10 @@ test('tiktok oauth callback creates account', function () {
         'username' => 'tiktoker',
         'status' => Status::Connected->value,
     ]);
-});
+})->with([
+    'direct post' => [['user.info.basic', 'user.info.profile', 'video.publish']],
+    'draft upload' => [['user.info.basic', 'video.upload']],
+]);
 
 test('tiktok callback fails with expired session', function () {
     // No session data - simulating expired session

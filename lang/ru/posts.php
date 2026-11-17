@@ -337,6 +337,16 @@ return [
         'content_exceeds_platform' => ':platform: превышение на :over симв. (макс. :limit).',
         'hashtags_exceed_platform' => ':platform разрешает не более :limit хештегов в публикации.',
         'tiktok' => [
+            'posting_mode' => 'Способ публикации',
+            'direct_post' => 'Прямая публикация',
+            'draft_upload' => 'В черновики TikTok',
+            'draft_hint' => 'В назначенное время видео отправится в TikTok. Откройте уведомление во входящих, чтобы опубликовать его вручную. Введите или подтвердите описание, хештеги, настройки приватности и другие данные в TikTok. Описание сохранится в TryPost.',
+            'draft_delivery_hint' => 'Откройте уведомление в TikTok, чтобы завершить публикацию. TryPost проверяет её завершение до 30 дней.',
+            'draft_scope_required' => 'Подключите канал TikTok заново и предоставьте разрешение video.upload для отправки черновиков.',
+            'draft_video_required' => 'Для черновика TikTok нужно ровно одно видео.',
+            'draft_source_required' => 'Используйте HTTPS-ссылку на видео в подтверждённом TikTok домене или префиксе URL. Она должна быть доступна не менее часа.',
+            'draft_unconfirmed' => 'TikTok не подтвердил передачу. Проверьте входящие TikTok перед повторной отправкой.',
+            'copy_caption' => 'Копировать описание',
             'privacy_level' => 'Доступ',
             'privacy_placeholder' => 'Выберите, кто может видеть этот пост',
             'privacy' => [
@@ -661,6 +671,7 @@ return [
     ],
 
     'status' => [
+        'inbox_delivered' => 'Во входящих TikTok',
         'pending' => 'В ожидании',
         'draft' => 'Черновик',
         'pending_approval' => 'Ожидает',

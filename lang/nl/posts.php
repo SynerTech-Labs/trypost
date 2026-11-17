@@ -337,6 +337,16 @@ return [
         'content_exceeds_platform' => ':platform: :over tekens te lang (max. :limit).',
         'hashtags_exceed_platform' => ':platform staat maximaal :limit hashtags per bericht toe.',
         'tiktok' => [
+            'posting_mode' => 'Publicatiemodus',
+            'direct_post' => 'Direct publiceren',
+            'draft_upload' => 'Naar TikTok-concepten sturen',
+            'draft_hint' => 'Op het geplande tijdstip wordt je video naar TikTok gestuurd. Open de melding in je inbox om handmatig te publiceren. Vul je tekst, hashtags, privacy en andere gegevens in TikTok in of bevestig ze daar. Je tekst blijft in TryPost.',
+            'draft_delivery_hint' => 'Open de melding in TikTok om te publiceren. TryPost controleert de publicatie maximaal 30 dagen.',
+            'draft_scope_required' => 'Koppel je TikTok-kanaal opnieuw en verleen video.upload om concepten te sturen.',
+            'draft_video_required' => 'Een TikTok-concept heeft precies één video nodig.',
+            'draft_source_required' => 'Gebruik een HTTPS-video-URL van je bij TikTok geverifieerde domein of URL-prefix. Houd deze minstens één uur bereikbaar.',
+            'draft_unconfirmed' => 'TikTok heeft de overdracht niet bevestigd. Controleer je TikTok-inbox voordat je opnieuw verstuurt.',
+            'copy_caption' => 'Tekst kopiëren',
             'privacy_level' => 'Zichtbaarheid',
             'privacy_placeholder' => 'Selecteer wie deze post kan bekijken',
             'privacy' => [
@@ -661,6 +671,7 @@ return [
     ],
 
     'status' => [
+        'inbox_delivered' => 'In TikTok-inbox',
         'pending' => 'In afwachting',
         'draft' => 'Concept',
         'pending_approval' => 'In afwachting',

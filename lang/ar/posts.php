@@ -337,6 +337,16 @@ return [
         'content_exceeds_platform' => ':platform: أطول بمقدار :over حرفًا (الحد الأقصى :limit).',
         'hashtags_exceed_platform' => 'يسمح :platform بـ :limit وسوم فقط لكل منشور.',
         'tiktok' => [
+            'posting_mode' => 'طريقة النشر',
+            'direct_post' => 'نشر مباشر',
+            'draft_upload' => 'إرسال إلى مسودات TikTok',
+            'draft_hint' => 'في الموعد المحدد، يُرسل الفيديو إلى TikTok. افتح إشعار صندوق الوارد للنشر يدويًا. أدخل أو أكّد الوصف والوسوم والخصوصية والتفاصيل الأخرى في TikTok. يبقى الوصف في TryPost.',
+            'draft_delivery_hint' => 'افتح الإشعار في TikTok لإكمال النشر. يتحقق TryPost من اكتمال النشر لمدة تصل إلى 30 يومًا.',
+            'draft_scope_required' => 'أعد ربط قناة TikTok وامنح إذن video.upload لإرسال المسودات.',
+            'draft_video_required' => 'تحتاج مسودة TikTok إلى فيديو واحد فقط.',
+            'draft_source_required' => 'استخدم رابط فيديو HTTPS ضمن نطاق أو بادئة رابط موثقة لدى TikTok، وأبقه متاحًا لمدة ساعة على الأقل.',
+            'draft_unconfirmed' => 'لم يؤكد TikTok النقل. تحقق من صندوق وارد TikTok قبل إعادة الإرسال.',
+            'copy_caption' => 'نسخ الوصف',
             'privacy_level' => 'مستوى الظهور',
             'privacy_placeholder' => 'اختر من يمكنه مشاهدة هذا المنشور',
             'privacy' => [
@@ -661,6 +671,7 @@ return [
     ],
 
     'status' => [
+        'inbox_delivered' => 'في صندوق وارد TikTok',
         'pending' => 'قيد الانتظار',
         'draft' => 'مسودة',
         'pending_approval' => 'قيد الانتظار',

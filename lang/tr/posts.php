@@ -337,6 +337,16 @@ return [
         'content_exceeds_platform' => ':platform: :over karakter fazla (en fazla :limit).',
         'hashtags_exceed_platform' => ':platform gönderi başına yalnızca :limit hashtag’e izin verir.',
         'tiktok' => [
+            'posting_mode' => 'Paylaşım biçimi',
+            'direct_post' => 'Doğrudan paylaş',
+            'draft_upload' => 'TikTok taslaklarına gönder',
+            'draft_hint' => 'Planlanan saatte videonuz TikTok’a gönderilir. Elle paylaşmak için gelen kutusundaki bildirimi açın. Açıklama, etiketler, gizlilik ve diğer ayrıntıları TikTok’ta girin veya onaylayın. Açıklamanız TryPost’ta kalır.',
+            'draft_delivery_hint' => 'Paylaşımı tamamlamak için TikTok’taki bildirimi açın. TryPost tamamlanmayı en fazla 30 gün kontrol eder.',
+            'draft_scope_required' => 'Taslak göndermek için TikTok kanalınızı yeniden bağlayın ve video.upload iznini verin.',
+            'draft_video_required' => 'TikTok taslağı için tam olarak bir video gerekir.',
+            'draft_source_required' => 'TikTok’ta doğrulanmış alan adınızdan veya URL önekinizden bir HTTPS video adresi kullanın. En az bir saat erişilebilir tutun.',
+            'draft_unconfirmed' => 'TikTok aktarımı onaylamadı. Yeniden göndermeden önce TikTok gelen kutunuzu kontrol edin.',
+            'copy_caption' => 'Açıklamayı kopyala',
             'privacy_level' => 'Görünürlük',
             'privacy_placeholder' => 'Bu gönderiyi kimin görebileceğini seçin',
             'privacy' => [
@@ -661,6 +671,7 @@ return [
     ],
 
     'status' => [
+        'inbox_delivered' => 'TikTok gelen kutusunda',
         'pending' => 'Beklemede',
         'draft' => 'Taslak',
         'pending_approval' => 'Bekliyor',

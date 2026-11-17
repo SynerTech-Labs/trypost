@@ -179,8 +179,14 @@ test('a login that granted every scope connects with the granted scopes stored',
         ->scopes->toEqualCanonicalizing($granted);
 })->with('granted scopes');
 
-test('a login that left out the publish scope is refused and stores nothing', function (string $network, array $granted, string $essential) {
-    $definition = grantedScopesCallback($network, array_values(array_diff($granted, [$essential])));
+test('a login without a publishing or transfer permission is refused and stores nothing', function (string $network, array $granted, string $essential) {
+    $missing = [$essential];
+
+    if ($network === 'tiktok') {
+        $missing[] = 'video.upload';
+    }
+
+    $definition = grantedScopesCallback($network, array_values(array_diff($granted, $missing)));
 
     $this->actingAs($this->owner)
         ->get(route($definition['route'], ['code' => 'code-1', 'state' => 'issued-state']))
