@@ -37,7 +37,7 @@ class PostPlatformMetaRules
      * Keys TryPost writes itself once a post is live (Telegram reactions): never
      * taken from a request, and kept when the post's settings are edited.
      */
-    public const SYSTEM_KEYS = ['reactions'];
+    public const SYSTEM_KEYS = ['reactions', 'youtube_operations'];
 
     /** What an Instagram music pick stores; anything else sent with it is dropped. */
     private const array INSTAGRAM_AUDIO_FIELDS = ['id', 'title', 'artist', 'cover_url', 'preview_url', 'audio_volume', 'video_volume'];
@@ -131,6 +131,38 @@ class PostPlatformMetaRules
             "{$prefix}.notify_subscribers" => ['sometimes', 'boolean'],
             "{$prefix}.embeddable" => ['sometimes', 'boolean'],
             "{$prefix}.made_for_kids" => ['sometimes', 'boolean'],
+            "{$prefix}.youtube_thumbnail" => ['sometimes', 'nullable', 'array'],
+            "{$prefix}.youtube_thumbnail.id" => ['sometimes', 'string', 'uuid'],
+            "{$prefix}.youtube_thumbnail.upload_token" => ['sometimes', 'nullable', 'uuid'],
+            "{$prefix}.youtube_captions" => ['sometimes', 'nullable', 'array', 'list', 'max:10', function (string $attribute, mixed $tracks, Closure $fail): void {
+                if (! is_array($tracks)) {
+                    return;
+                }
+
+                $seen = [];
+
+                foreach ($tracks as $track) {
+                    $name = trim((string) data_get($track, 'name'));
+                    $identity = $name !== '' ? $name : (string) (data_get($track, 'media.id') ?? data_get($track, 'media.upload_token'));
+                    $key = strtolower((string) data_get($track, 'language')).'|'.$identity;
+
+                    if (in_array($key, $seen, true)) {
+                        $fail(__('validation.distinct', ['attribute' => __('posts.form.youtube.subtitles')]));
+
+                        return;
+                    }
+
+                    $seen[] = $key;
+                }
+            }],
+            "{$prefix}.youtube_captions.*" => ['array:media,language,name'],
+            "{$prefix}.youtube_captions.*.media" => ['required', 'array'],
+            "{$prefix}.youtube_captions.*.media.id" => ['sometimes', 'string', 'uuid'],
+            "{$prefix}.youtube_captions.*.media.upload_token" => ['sometimes', 'nullable', 'uuid'],
+            "{$prefix}.youtube_captions.*.language" => ['required', 'string', 'max:35', 'regex:/^[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{2,8})*$/'],
+            "{$prefix}.youtube_captions.*.name" => ['sometimes', 'nullable', 'string', 'max:150'],
+            "{$prefix}.youtube_playlists" => ['sometimes', 'nullable', 'array', 'list', 'max:20'],
+            "{$prefix}.youtube_playlists.*" => ['string', 'max:100', 'regex:/^[a-zA-Z0-9_-]+$/', 'distinct'],
 
             "{$prefix}.is_ai_generated" => ['sometimes', 'boolean'],
 
@@ -241,6 +273,10 @@ class PostPlatformMetaRules
         return [
             "{$prefix}.title" => __('posts.form.pinterest.title'),
             "{$prefix}.description" => __('posts.form.youtube.description'),
+            "{$prefix}.youtube_thumbnail" => __('posts.form.youtube.thumbnail'),
+            "{$prefix}.youtube_captions.*.language" => __('posts.form.youtube.language'),
+            "{$prefix}.youtube_captions.*.name" => __('posts.form.youtube.track_name'),
+            "{$prefix}.youtube_playlists" => __('posts.form.youtube.playlists'),
             "{$prefix}.link" => __('posts.form.pinterest.link'),
             "{$prefix}.event.title" => __('posts.form.google_business.event_title'),
             "{$prefix}.call_to_action.url" => __('posts.form.google_business.cta_url'),
@@ -259,8 +295,8 @@ class PostPlatformMetaRules
             'Mastodon: spoiler_text (content warning, ≤500; counts toward the 500-character post limit).',
             'Pinterest: board_id (required to publish — call list-pinterest-boards-tool first, or create-pinterest-board-tool), title (≤100), link (destination URL). Pin description comes from the post content; a video pin cover frame is the media item meta.cover_offset_ms.',
             'Discord: channel_id (required to publish — call list-discord-channels-tool first), mentions ([{token,label}], e.g. {token: "@everyone"} or {token: "<@&roleId>"}), embeds (up to 10 [{title ≤256, description ≤4096, url, image (URL), color (#RRGGBB)}]).',
-            'YouTube Shorts: title (≤100, no < or >; omitted, it is derived from the first non-empty line of the content with < and > removed, cut to 100 characters), description (plain text, at most 5000 bytes; omit or null to use the content), category_id (YouTube category id: '.collect(Category::cases())->map(fn (Category $category): string => "{$category->value}=".__($category->labelKey(), [], 'en'))->implode(', ').'; default '.Category::DEFAULT->value.'), privacy_status (public|unlisted|private, default public), license (youtube|creativeCommon), notify_subscribers (default true), embeddable (default true), made_for_kids (default false), is_ai_generated (discloses altered or synthetic content).',
-            'Instagram: is_ai_generated (feed, reels, stories, carousels), share_to_feed (instagram_reel only, default true), collaborators (up to '.self::INSTAGRAM_MAX_COLLABORATORS.' Instagram usernames invited as co-authors; feed, reels and carousels, not stories; the post shows on a collaborator\'s profile only after they accept the invite in the Instagram app, and a username that does not exist is only refused when the post publishes, so confirm the usernames first), trial_graduation (instagram_reel only: MANUAL|SS_PERFORMANCE publishes a trial reel shown only to non-followers, graduated by hand in the app or by Instagram when it performs well; not with collaborators, and only on accounts where Instagram offers trial reels), audio (instagram_reel only, Instagram connected through Facebook, platform instagram-facebook: {id} of an Instagram audio track from search-instagram-audio-tool, with optional title, artist, cover_url and preview_url copied from that result so the app can show the track, and audio_volume and video_volume from 0 to 100, default 100). An instagram_feed post with a single video publishes as a Reel. People tags are the media item meta.user_tags and a video cover frame is meta.cover_offset_ms.',
+            'YouTube (youtube_short or youtube_video): title (≤100, no < or >; omitted, it is derived from the first non-empty line of the content with < and > removed, cut to 100 characters), description (plain text, at most 5000 bytes; omit or null to use the content), category_id (YouTube category id: '.collect(Category::cases())->map(fn (Category $category): string => "{$category->value}=".__($category->labelKey(), [], 'en'))->implode(', ').'; default '.Category::DEFAULT->value.'), privacy_status (public|unlisted|private, default public), license (youtube|creativeCommon), notify_subscribers (default true), embeddable (default true), made_for_kids (default false), is_ai_generated (discloses altered or synthetic content).',
+            'For youtube_video only: youtube_thumbnail ({id} or {upload_token} of a JPEG/PNG up to 2 MiB, separate from primary media), youtube_captions (up to 10 tracks: {media: {id} or {upload_token}, language: BCP-47 code, name: optional track name}; timed UTF-8 SRT/VTT up to 2 MiB per file), youtube_playlists (up to 20 ids from list-youtube-playlists-tool). Upload auxiliary files using request-media-upload-tool and put their tokens in meta, never in the primary video media list. youtube_operations is read-only upload status in post responses; publish-post-tool on an already-published video retries unfinished operations without re-uploading the video. Square/vertical videos up to 3 minutes may still be classified as Shorts by YouTube. Instagram: is_ai_generated (feed, reels, stories, carousels), share_to_feed (instagram_reel only, default true), collaborators (up to '.self::INSTAGRAM_MAX_COLLABORATORS.' Instagram usernames invited as co-authors; feed, reels and carousels, not stories; the post shows on a collaborator\'s profile only after they accept the invite in the Instagram app, and a username that does not exist is only refused when the post publishes, so confirm the usernames first), trial_graduation (instagram_reel only: MANUAL|SS_PERFORMANCE publishes a trial reel shown only to non-followers, graduated by hand in the app or by Instagram when it performs well; not with collaborators, and only on accounts where Instagram offers trial reels), audio (instagram_reel only, Instagram connected through Facebook, platform instagram-facebook: {id} of an Instagram audio track from search-instagram-audio-tool, with optional title, artist, cover_url and preview_url copied from that result so the app can show the track, and audio_volume and video_volume from 0 to 100, default 100). An instagram_feed post with a single video publishes as a Reel. People tags are the media item meta.user_tags and a video cover frame is meta.cover_offset_ms.',
             'X: is_ai_generated (sent as made_with_ai, discloses AI-generated media on the post). poll (content_type x_poll only, no media; the post content is the question; a reply of the thread can be a poll too, see thread_replies, up to '.XPoll::QUESTION_MAX_LENGTH.' characters): {options (list of '.XPoll::MIN_OPTIONS.' to '.XPoll::MAX_OPTIONS.' choices of 1 to '.XPoll::OPTION_MAX_LENGTH.' characters, no two the same; blank ones are dropped), duration_minutes ('.XPoll::MIN_DURATION.' to '.XPoll::MAX_DURATION.', how long voting stays open)}, both required to schedule or publish.',
             'Threads: topic_tag (1-50 characters after a leading # is dropped, no . or &). Use content_type threads_ghost_post for a text-only post archived after 24 hours (no media, no topic).',
             'Facebook, Bluesky, LinkedIn: link_preview (default true; false publishes a text post with a link without its preview card).',

@@ -23,13 +23,16 @@ import {
 } from '@/components/ui/tooltip';
 import { useCalendarDragContext } from '@/composables/calendar/useCalendarDrag';
 import { usePostCardMenuActions } from '@/composables/publish/usePostCardMenuActions';
+import { getContentTypeBadgeKey } from '@/composables/usePlatformLogo';
 import { useWorkspaceAbilities } from '@/composables/useWorkspaceAbilities';
 import date from '@/date';
+import { filled } from '@/lib/helpers';
 import { isImage } from '@/lib/mediaType';
 import { postChannelLabel, postThumbnail } from '@/lib/postCard';
 import { isDeletedOnNetwork } from '@/lib/postNetwork';
 import { htmlToPlainText } from '@/lib/utils';
 import { videoFrameUrl } from '@/lib/videoFrame';
+import { Platform } from '@/types/platform';
 import { PostStatus, ScheduleMode } from '@/types/post';
 import type { CalendarPost } from '@/types/publish';
 
@@ -73,6 +76,27 @@ const time = computed(() =>
 );
 
 const text = computed(() => htmlToPlainText(props.post.content ?? ''));
+const youtubeFormatKey = computed(() => {
+    if (props.post.platform !== Platform.YouTube) {
+        return null;
+    }
+    if (!filled(props.post.content_type)) {
+        return null;
+    }
+    return getContentTypeBadgeKey(Platform.YouTube, props.post.content_type);
+});
+const openLabel = (translate: (key: string) => string): string => {
+    const parts = [channels.value, time.value, translate(statusLabelKey.value)];
+    if (filled(youtubeFormatKey.value)) {
+        parts.push(translate(youtubeFormatKey.value));
+    }
+    if (filled(text.value)) {
+        parts.push(text.value);
+        return parts.join(' · ');
+    }
+    parts.push(translate('calendar.no_content'));
+    return parts.join(' · ');
+};
 
 const thumbnail = computed(() => postThumbnail(props.post));
 
@@ -145,14 +169,7 @@ const chipClass = computed(() => [
             v-bind="$attrs"
             class="flex h-7 min-w-0 shrink-0 items-center rounded-lg border border-border-strong bg-card px-1 text-start transition-control hover:bg-secondary focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring [&[data-calendar-draggable=true]]:cursor-grab"
             :class="chipClass"
-            :aria-label="
-                [
-                    channels,
-                    time,
-                    $t(statusLabelKey),
-                    text || $t('calendar.no_content'),
-                ].join(' · ')
-            "
+            :aria-label="openLabel($t)"
             :data-dragging="isDragging || undefined"
             :data-testid="`calendar-post-${post.id}`"
             @click="openDetails"
@@ -174,6 +191,7 @@ const chipClass = computed(() => [
                     >{{ time }}</span
                 >
             </span>
+            <span v-if="youtubeFormatKey" class="shrink-0 text-[10px] font-medium" :data-testid="`calendar-post-format-${post.id}`">{{ $t(youtubeFormatKey) }}</span>
             <Tooltip :delay-duration="200">
                 <TooltipTrigger as-child>
                     <span

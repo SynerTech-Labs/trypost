@@ -80,6 +80,7 @@ use App\Mcp\Tools\SocialAccount\ListDiscordChannelsTool;
 use App\Mcp\Tools\SocialAccount\ListFreeSlotsTool;
 use App\Mcp\Tools\SocialAccount\ListPinterestBoardsTool;
 use App\Mcp\Tools\SocialAccount\ListSocialAccountsTool;
+use App\Mcp\Tools\SocialAccount\ListYouTubePlaylistsTool;
 use App\Mcp\Tools\SocialAccount\MovePostToSlotTool;
 use App\Mcp\Tools\SocialAccount\ReorderQueueTool;
 use App\Mcp\Tools\SocialAccount\SearchInstagramAudioTool;
@@ -210,6 +211,7 @@ function mcpAuthParityFixture(Workspace $workspace, User $owner, ?User $actor = 
         'signature' => WorkspaceSignature::factory()->create(['workspace_id' => $workspace->id]),
         'discord' => SocialAccount::factory()->discord()->create(['workspace_id' => $workspace->id, 'platform_user_id' => (string) Str::uuid()]),
         'pinterest' => SocialAccount::factory()->pinterest()->create(['workspace_id' => $workspace->id, 'platform_user_id' => (string) Str::uuid()]),
+        'youtube' => SocialAccount::factory()->youtube()->create(['workspace_id' => $workspace->id, 'token_expires_at' => now()->addDay()]),
         'instagramFacebook' => SocialAccount::factory()->instagram()->create(['workspace_id' => $workspace->id, 'platform' => Platform::InstagramFacebook, 'platform_user_id' => (string) Str::uuid()]),
         'uploadToken' => $uploadToken,
         'publicationId' => (string) Str::uuid(),
@@ -305,6 +307,7 @@ function mcpAuthParityTools(): array
         'search-instagram-audio-tool' => [SearchInstagramAudioTool::class, $everyMember, fn (TestCase $t, array $f) => $t->getJson(route('app.instagram.audio.index', $f['instagramFacebook'])), fn (array $f) => ['account_id' => $f['instagramFacebook']->id]],
         'get-instagram-audio-tool' => [GetInstagramAudioTool::class, $everyMember, fn (TestCase $t, array $f) => $t->getJson(route('app.instagram.audio.show', [$f['instagramFacebook'], '846373660299207'])), fn (array $f) => ['account_id' => $f['instagramFacebook']->id, 'audio_id' => '846373660299207']],
         'list-pinterest-boards-tool' => [ListPinterestBoardsTool::class, $everyMember, fn (TestCase $t, array $f) => $t->getJson(route('app.pinterest.boards.index', $f['pinterest'])), fn (array $f) => ['account_id' => $f['pinterest']->id]],
+        'list-youtube-playlists-tool' => [ListYouTubePlaylistsTool::class, $everyMember, fn (TestCase $t, array $f) => $t->getJson(route('app.posts.composer.account', $f['youtube'])), fn (array $f) => ['account_id' => $f['youtube']->id]],
         'get-posting-schedule-tool' => [GetPostingScheduleTool::class, $everyMember, fn (TestCase $t, array $f) => $t->getJson(route('app.posts.composer.live')), fn (array $f) => ['account_id' => $f['linkedin']->id]],
         'update-posting-schedule-tool' => [UpdatePostingScheduleTool::class, $admins, fn (TestCase $t, array $f) => $t->putJson(route('app.channels.posting-schedule.update', $f['linkedin']), ['timezone' => 'UTC', 'posting_goal' => 2, 'posting_schedule' => null]), fn (array $f) => ['account_id' => $f['linkedin']->id, 'timezone' => 'UTC', 'posting_goal' => 2, 'posting_schedule' => null]],
         'generate-posting-schedule-tool' => [GeneratePostingScheduleTool::class, $admins, fn (TestCase $t, array $f) => $t->postJson(route('app.channels.posting-schedule.generate', $f['linkedin']), ['mode' => 'goal', 'goal' => 3]), fn (array $f) => ['account_id' => $f['linkedin']->id, 'mode' => 'goal', 'goal' => 3]],

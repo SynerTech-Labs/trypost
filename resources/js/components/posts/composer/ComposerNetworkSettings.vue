@@ -45,6 +45,7 @@ const props = withDefaults(
 const emit = defineEmits<{
     'update:meta': [value: Record<string, any>];
     'link-facebook': [];
+    busy: [value: boolean];
 }>();
 
 const { accountLoaded } = useComposerLiveState();
@@ -66,10 +67,15 @@ const videoDurationSec = computed(
 
 const update = (meta: Record<string, any>): void => emit('update:meta', meta);
 const linkFacebook = (): void => emit('link-facebook');
+const setBusy = (busy: boolean): void => emit('busy', busy);
 
 const AI_GENERATED_ROWS: Partial<
     Record<string, { metaKey: string; testId: string }>
 > = {
+    [ContentType.YouTubeVideo]: {
+        metaKey: 'is_ai_generated',
+        testId: 'youtube-ai-generated',
+    },
     [ContentType.YouTubeShort]: {
         metaKey: 'is_ai_generated',
         testId: 'youtube-ai-generated',
@@ -147,12 +153,15 @@ const aiGenerated = computed({
         />
         <YouTubeSettings
             v-else-if="account.platform === Platform.YouTube"
+            :account-id="account.id"
+            :content-type="destination.content_type"
             :platform-index="platformIndex"
             :publish-config="platformConfig?.publishConfig ?? null"
             :content="destination.content"
             :meta="destination.meta"
             :disabled="disabled"
             @update:meta="update"
+            @busy="setBusy"
         />
         <PinterestSettings
             v-else-if="account.platform === Platform.Pinterest"

@@ -78,6 +78,7 @@ use App\Mcp\Tools\SocialAccount\ListDiscordChannelsTool;
 use App\Mcp\Tools\SocialAccount\ListFreeSlotsTool;
 use App\Mcp\Tools\SocialAccount\ListPinterestBoardsTool;
 use App\Mcp\Tools\SocialAccount\ListSocialAccountsTool;
+use App\Mcp\Tools\SocialAccount\ListYouTubePlaylistsTool;
 use App\Mcp\Tools\SocialAccount\MovePostToSlotTool;
 use App\Mcp\Tools\SocialAccount\ReorderQueueTool;
 use App\Mcp\Tools\SocialAccount\SearchInstagramAudioTool;
@@ -173,6 +174,7 @@ class TryPostServer extends Server
         SetPostRecurrenceTool::class,
         ClearPostRecurrenceTool::class,
         ListPinterestBoardsTool::class,
+        ListYouTubePlaylistsTool::class,
         CreatePinterestBoardTool::class,
         ListDiscordChannelsTool::class,
         SearchInstagramAudioTool::class,

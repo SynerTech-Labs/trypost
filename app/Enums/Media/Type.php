@@ -15,6 +15,7 @@ enum Type: string
     case Image = 'image';
     case Video = 'video';
     case Document = 'document';
+    case Subtitle = 'subtitle';
 
     private const GIF_MIME = 'image/gif';
 
@@ -58,6 +59,7 @@ enum Type: string
             ],
             self::Video => ['video/mp4', self::MOV_MIME],
             self::Document => [self::PDF_MIME],
+            self::Subtitle => ['application/x-subrip', 'application/x-srt', 'text/vtt'],
         };
     }
 
@@ -80,6 +82,7 @@ enum Type: string
             ],
             self::Video => ['mp4', 'mov'],
             self::Document => ['pdf'],
+            self::Subtitle => ['srt', 'vtt'],
         };
     }
 
@@ -132,6 +135,10 @@ enum Type: string
      */
     public static function fromExtension(?string $extension): ?self
     {
+        if (in_array(strtolower((string) $extension), ['srt', 'vtt'], true)) {
+            return self::Subtitle;
+        }
+
         return collect(self::registeredMimeTypes($extension))->map(self::owner(...))->filter()->first();
     }
 
@@ -153,6 +160,7 @@ enum Type: string
     {
         return match ($this) {
             self::Document => $mimeType === self::PDF_MIME,
+            self::Subtitle => in_array($mimeType, $this->allowedMimeTypes(), true),
             default => Str::is("{$this->value}/*", $mimeType),
         };
     }

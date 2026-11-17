@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Social;
 
 use App\Dto\MediaItem;
+use App\Enums\PostPlatform\ContentType;
 use App\Enums\YouTube\License;
 use App\Enums\YouTube\PrivacyStatus;
 use App\Exceptions\PlatformUnavailableException;
@@ -13,6 +14,7 @@ use App\Exceptions\Social\YouTubePublishException;
 use App\Models\Post;
 use App\Models\SocialAccount;
 use App\Services\Social\Concerns\HasSocialHttpClient;
+use App\Support\YouTubeAssets;
 use App\Support\YouTubeDescription;
 use App\Support\YouTubeMetadata;
 use Google\Client as GoogleClient;
@@ -33,7 +35,15 @@ class YouTubePublisher
 
     public function publish(Post $post): array
     {
+        if (filled($post->platform_post_id)) {
+            return ['id' => $post->platform_post_id, 'url' => $this->videoUrl($post, $post->platform_post_id)];
+        }
+
         $this->validateContentLength($post);
+
+        if ($post->content_type === ContentType::YouTubeVideo) {
+            YouTubeAssets::validateOwned($post);
+        }
 
         $metadataViolation = YouTubeMetadata::violation($post->meta);
 
@@ -71,7 +81,16 @@ class YouTubePublisher
             );
         }
 
-        return $this->publishShort($firstMedia, $account, $content, $description, $post->meta ?? []);
+        return $this->publishVideo($post, $firstMedia, $account, $content, $description, $post->meta ?? []);
+    }
+
+    private function videoUrl(Post $post, string $videoId): string
+    {
+        if ($post->content_type === ContentType::YouTubeVideo) {
+            return "https://www.youtube.com/watch?v={$videoId}";
+        }
+
+        return "https://www.youtube.com/shorts/{$videoId}";
     }
 
     private function createGoogleClient(SocialAccount $account): GoogleClient
@@ -102,7 +121,7 @@ class YouTubePublisher
     /**
      * @param  array<string, mixed>  $meta
      */
-    private function publishShort(MediaItem $media, SocialAccount $account, ?string $content, string $description, array $meta): array
+    private function publishVideo(Post $post, MediaItem $media, SocialAccount $account, ?string $content, string $description, array $meta): array
     {
         $missingTitle = YouTubeMetadata::missingTitleViolation($meta, (string) $content);
 
@@ -126,10 +145,12 @@ class YouTubePublisher
             $this->downloadVideo($media, $tempFile);
             $video = $this->uploadVideo($media, $account, $tempFile, $this->buildVideo($meta, (string) $content, $description), $this->insertParameters($meta));
             $videoId = $video->getId();
+            $url = $this->videoUrl($post, $videoId);
+            $post->writePublication(['platform_post_id' => $videoId, 'platform_url' => $url]);
 
             return [
                 'id' => $videoId,
-                'url' => "https://www.youtube.com/shorts/{$videoId}",
+                'url' => $url,
             ];
         } catch (Exception $e) {
             throw YouTubePublishException::fromGoogleException($e);

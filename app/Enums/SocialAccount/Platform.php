@@ -88,7 +88,7 @@ enum Platform: string
             self::LinkedInPage => 'LinkedIn Page',
             self::X => 'X',
             self::TikTok => 'TikTok',
-            self::YouTube => 'YouTube Shorts',
+            self::YouTube => 'YouTube',
             self::Facebook => 'Facebook Page',
             self::Instagram => 'Instagram',
             self::InstagramFacebook => 'Instagram (Facebook Business)',

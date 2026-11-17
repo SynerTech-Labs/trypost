@@ -196,7 +196,7 @@ test('content type badges follow the display rules for each platform', function 
         [ContentType::PinterestVideoPin, false],
         [ContentType::PinterestCarousel, false],
     ]],
-    'YouTube' => [Platform::YouTube, [[ContentType::YouTubeShort, false]]],
+    'YouTube' => [Platform::YouTube, [[ContentType::YouTubeShort, true], [ContentType::YouTubeVideo, true]]],
     'LinkedIn' => [Platform::LinkedIn, [[ContentType::LinkedInPost, false]]],
     'X' => [Platform::X, [[ContentType::XPost, false]]],
 ]);

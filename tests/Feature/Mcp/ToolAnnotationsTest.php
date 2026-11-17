@@ -89,6 +89,7 @@ function mcpExpectedToolAnnotations(): array
         'reorder-queue-tool' => [false, true, false],
         'move-post-to-slot-tool' => [false, true, false],
         'list-pinterest-boards-tool' => [true, false, false],
+        'list-youtube-playlists-tool' => [true, false, false],
         'create-pinterest-board-tool' => [false, false, true],
         'list-discord-channels-tool' => [true, false, false],
         'search-instagram-audio-tool' => [true, false, true],

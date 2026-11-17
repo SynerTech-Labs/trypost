@@ -68,8 +68,8 @@ export interface MediaUploader {
 /** The upload limits the server shares, or none at all before they arrive. */
 export const mediaUploadLimits = (): MediaUploadLimits =>
     usePage<SharedData>().props.mediaUploadLimits ?? {
-        max_bytes: { image: 0, video: 0, document: 0 },
-        extensions: { image: [], video: [], document: [] },
+        max_bytes: { image: 0, video: 0, document: 0, subtitle: 0 },
+        extensions: { image: [], video: [], document: [], subtitle: [] },
         upload_retention_hours: 0,
         heic: false,
     };
@@ -170,7 +170,7 @@ export const useMediaUpload = (options: {
             return { key, state: 'error', file, reason: 'unsupported_type' };
         }
 
-        const limitBytes = limits.max_bytes[type];
+        const limitBytes = limits.max_bytes[type] ?? 0;
         if (file.size > limitBytes) {
             return {
                 key,

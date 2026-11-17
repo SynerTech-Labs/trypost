@@ -94,8 +94,8 @@ export interface MediaSourceOption {
 }
 
 export interface MediaUploadLimits {
-    max_bytes: { image: number; video: number; document: number };
-    extensions: { image: string[]; video: string[]; document: string[] };
+    max_bytes: { image: number; video: number; document: number; subtitle?: number };
+    extensions: { image: string[]; video: string[]; document: string[]; subtitle?: string[] };
     upload_retention_hours: number;
     heic: boolean;
 }

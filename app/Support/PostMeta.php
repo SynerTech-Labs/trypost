@@ -30,7 +30,7 @@ class PostMeta
     public static function forChannel(SocialAccount $account, array $meta, array $stored = [], ContentType|string|null $contentType = null): array
     {
         $meta = [
-            ...PostPlatformMetaRules::normalize($meta),
+            ...Arr::except(PostPlatformMetaRules::normalize($meta), PostPlatformMetaRules::SYSTEM_KEYS),
             ...Arr::only($stored, PostPlatformMetaRules::SYSTEM_KEYS),
         ];
 

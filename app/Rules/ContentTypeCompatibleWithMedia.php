@@ -212,6 +212,12 @@ class ContentTypeCompatibleWithMedia implements DataAwareRule, ValidationRule
     {
         $items = collect($media);
         $types = $items->map($this->typeOf(...));
+
+        if ($types->contains(MediaType::Subtitle)) {
+            $fail(__('posts.errors.media_type_unsupported'));
+
+            return true;
+        }
         $hasImage = $types->contains(MediaType::Image);
         $hasVideo = $types->contains(MediaType::Video);
         $hasDocument = $types->contains(MediaType::Document);

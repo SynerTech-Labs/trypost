@@ -9,6 +9,7 @@ use App\Models\Media;
 use App\Models\User;
 use App\Models\Workspace;
 use App\Support\HeicConverter;
+use App\Support\TimedSubtitles;
 use App\Support\VideoDurationProbe;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
@@ -52,6 +53,8 @@ final class ChunkedAssetReceiver
      */
     private static function assertWithinCap(string $fileName, string $mimeType, int $size): void
     {
+        $mimeType = TimedSubtitles::mimeType($fileName, $mimeType);
+
         if (MediaType::fromMime($mimeType) === null && ! HeicConverter::isHeicMime($mimeType) && ! HeicConverter::isSequenceMime($mimeType)) {
             throw ValidationException::withMessages([
                 'file_name' => __('posts.composer.upload_errors.unsupported_type'),

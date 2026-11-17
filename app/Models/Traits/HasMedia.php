@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\Workspace;
 use App\Support\HeicConverter;
 use App\Support\Media\ImageDimensions;
+use App\Support\TimedSubtitles;
 use App\Support\VideoDurationProbe;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Http\UploadedFile;
@@ -81,8 +82,12 @@ trait HasMedia
             $this->clearMediaCollection($collection);
         }
 
-        $mimeType = $file->getMimeType();
+        $mimeType = TimedSubtitles::mimeType($file->getClientOriginalName(), (string) $file->getMimeType());
         $type = $this->getMediaType($mimeType);
+
+        if ($type === Type::Subtitle) {
+            TimedSubtitles::assertValid((string) file_get_contents($file->getPathname()), $file->getClientOriginalName());
+        }
 
         // Normalize non-JPEG still images to JPEG q100 for universal platform compatibility.
         // GIF is preserved (animation kept for X/Bluesky/Mastodon).
@@ -131,8 +136,13 @@ trait HasMedia
             throw new InvalidArgumentException("Unable to determine MIME type for media file: {$filePath}");
         }
 
+        $mimeType = TimedSubtitles::mimeType($originalFilename, $mimeType);
         $type = $this->getMediaType($mimeType);
         $extension = File::extension($originalFilename);
+
+        if ($type === Type::Subtitle) {
+            TimedSubtitles::assertValid((string) file_get_contents($filePath), $originalFilename);
+        }
         $meta = $this->withVideoDuration($meta, $type, $filePath);
 
         $stored = $type === Type::Image

@@ -375,7 +375,7 @@ test('unsplash search and trending are served under media', function () {
         ->assertJsonPath('results.0.id', 'xyz');
 });
 
-test('the shared upload limits carry the three byte caps and the upload retention', function () {
+test('the shared upload limits carry the byte caps and the upload retention', function () {
     config()->set([
         'trypost.media.max_size_mb.image' => 7,
         'trypost.media.max_size_mb.video' => 300,
@@ -392,11 +392,13 @@ test('the shared upload limits carry the three byte caps and the upload retentio
             'image' => 7 * 1024 * 1024,
             'video' => 300 * 1024 * 1024,
             'document' => 40 * 1024 * 1024,
+            'subtitle' => 2 * 1024 * 1024,
         ],
         'extensions' => [
             'image' => MediaType::Image->extensions(),
             'video' => MediaType::Video->extensions(),
             'document' => MediaType::Document->extensions(),
+            'subtitle' => MediaType::Subtitle->extensions(),
         ],
         'upload_retention_hours' => 12,
         'heic' => HeicConverter::available(),

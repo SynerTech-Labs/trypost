@@ -8,6 +8,7 @@ use App\Enums\Media\Type as MediaType;
 use App\Models\Post;
 use App\Rules\HeicAccepted;
 use App\Support\PostMediaRules;
+use App\Support\TimedSubtitles;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Http\UploadedFile;
 
@@ -50,6 +51,8 @@ class PostMediaRequestRules
             ...MediaType::Image->allowedMimeTypes(),
             ...MediaType::Video->allowedMimeTypes(),
             ...MediaType::Document->allowedMimeTypes(),
+            ...MediaType::Subtitle->allowedMimeTypes(),
+            'text/plain',
         ];
 
         return [
@@ -70,7 +73,7 @@ class PostMediaRequestRules
             return null;
         }
 
-        $type = MediaType::fromMime((string) $file->getMimeType());
+        $type = MediaType::fromMime(TimedSubtitles::mimeType($file->getClientOriginalName(), (string) $file->getMimeType()));
 
         if ($type === null) {
             return __('posts.errors.media_file_unsupported');
@@ -78,6 +81,10 @@ class PostMediaRequestRules
 
         if ($file->getSize() > $type->maxSizeInBytes()) {
             return __('posts.errors.media_file_too_large', ['size' => $type->maxSizeInMb()]);
+        }
+
+        if ($type === MediaType::Subtitle && ! TimedSubtitles::valid((string) $file->get(), $file->getClientOriginalName())) {
+            return __('posts.form.youtube.subtitle_invalid');
         }
 
         return null;

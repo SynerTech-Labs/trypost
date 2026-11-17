@@ -270,6 +270,8 @@ const openLightbox = (index: number): void => {
 };
 
 const CONTENT_TYPE_ICONS: Record<string, Component> = {
+    youtube_video: IconCirclePlay,
+    youtube_short: IconCirclePlay,
     instagram_story: IconCircleDashedPlus,
     facebook_story: IconCircleDashedPlus,
     instagram_reel: IconCirclePlay,

@@ -27,6 +27,8 @@ use App\Http\Controllers\Api\TikTokCreatorInfoController;
 use App\Http\Controllers\Api\UploadController;
 use App\Http\Controllers\Api\WebhookController;
 use App\Http\Controllers\Api\WorkspaceController;
+use App\Http\Controllers\App\ComposerAccountDataController;
+use App\Http\Controllers\App\YouTubeVideoExtrasController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/uploads/{token}', [UploadController::class, 'store'])
@@ -45,6 +47,8 @@ Route::middleware(['auth:api', 'workspace.token', 'throttle:api'])->group(functi
     Route::get('/posts', [PostController::class, 'index'])->name('api.posts.index');
     Route::post('/posts/batch', [PostController::class, 'storeBatch'])->name('api.posts.batch.store');
     Route::post('/posts', [PostController::class, 'store'])->name('api.posts.store');
+    Route::post('/posts/{post}/youtube-extras', YouTubeVideoExtrasController::class)->name('api.posts.youtube-extras');
+    Route::get('/social-accounts/{account}/youtube-playlists', [ComposerAccountDataController::class, 'youtubePlaylists'])->name('api.youtube.playlists');
     Route::get('/posts/{post}', [PostController::class, 'show'])->name('api.posts.show');
     Route::put('/posts/{post}', [PostController::class, 'update'])->name('api.posts.update');
     Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('api.posts.destroy');
