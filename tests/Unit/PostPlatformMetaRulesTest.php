@@ -37,6 +37,10 @@ test('custom meta attributes use translated field names', function () {
     expect(PostPlatformMetaRules::attributes())->toBe([
         'meta.title' => __('posts.form.pinterest.title'),
         'meta.description' => __('posts.form.youtube.description'),
+        'meta.youtube_thumbnail' => __('posts.form.youtube.thumbnail'),
+        'meta.youtube_captions.*.language' => __('posts.form.youtube.language'),
+        'meta.youtube_captions.*.name' => __('posts.form.youtube.track_name'),
+        'meta.youtube_playlists' => __('posts.form.youtube.playlists'),
         'meta.link' => __('posts.form.pinterest.link'),
         'meta.event.title' => __('posts.form.google_business.event_title'),
         'meta.call_to_action.url' => __('posts.form.google_business.cta_url'),
