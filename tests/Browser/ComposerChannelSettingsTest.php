@@ -1299,6 +1299,41 @@ test('the tiktok interactions read as full sentences and the compliance text lin
     $page->assertNoJavaScriptErrors();
 });
 
+test('a TikTok draft selection persists and inbox delivery waits for manual publication', function (string $locale) {
+    fakeChannelSettingsApis();
+    $video = [['id' => (string) Str::uuid(), 'type' => 'video', 'path' => 'medias/clip.mp4', 'url' => 'https://example.com/clip.mp4', 'mime_type' => 'video/mp4', 'original_filename' => 'clip.mp4']];
+    $post = seedChannelSettingsPost(Platform::TikTok, ContentType::TikTokVideo, $video);
+    $post->user->update(['locale' => $locale]);
+    $this->actingAs($post->user->fresh());
+    app()->setLocale($locale);
+
+    $page = visit(route('app.posts.edit', $post))->resize(1440, 1000);
+    $page->assertNoJavaScriptErrors();
+    waitFor($page, '@tiktok-posting-mode');
+    $page->click('@tiktok-posting-mode')->click(__('posts.form.tiktok.draft_upload'));
+    waitFor($page, '@tiktok-draft-hint');
+    $page->assertSeeIn('@tiktok-draft-permission', __('posts.form.tiktok.draft_scope_required'));
+    $page->screenshot(filename: "tiktok-draft-composer-{$locale}");
+    $page->assertMissing('@tiktok-privacy-level')->assertMissing('@tiktok-ai-generated')
+        ->click('@composer-save-draft');
+    waitForGone($page, '@post-composer-dialog');
+
+    expect($post->fresh()->meta['posting_mode'])->toBe('draft_upload');
+    $post->refresh()->update(['status' => Status::Publishing, 'scheduled_at' => now()]);
+    $post->markPublicationInboxDelivered('v_inbox_url~browser');
+
+    $page = visit(route('app.posts.index', ['tab' => 'queue']))->resize(1440, 1000);
+    waitFor($page, "@post-open-{$post->id}");
+    $page->assertSeeIn('[data-testid="queue-publishing"] h2', __('posts.status.inbox_delivered'));
+    $page->click("@post-open-{$post->id}");
+    waitFor($page, '@tiktok-inbox-help');
+    $page->screenshot(filename: "tiktok-draft-inbox-{$locale}");
+    $page->assertSeeIn("@post-details-status-{$post->id}", __('posts.status.inbox_delivered'))
+        ->assertSee(__('posts.form.tiktok.copy_caption'))
+        ->assertNoJavaScriptErrors();
+    expect($post->fresh()->published_at)->toBeNull();
+})->with(['en', 'de']);
+
 test('tiktok has no post type choice: photos make a photo post and a video a video post', function () {
     fakeChannelSettingsApis();
     $photos = collect(range(1, 2))->map(fn (int $index): array => ['id' => (string) Str::uuid(), 'type' => 'image', 'path' => "medias/photo-{$index}.jpg", 'url' => "https://example.com/photo-{$index}.jpg", 'mime_type' => 'image/jpeg', 'original_filename' => "photo-{$index}.jpg"])->all();

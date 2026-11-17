@@ -146,6 +146,44 @@ test('tiktok privacy level is required to schedule and is refused with an unknow
     netParityRefused($payload(['privacy_level' => 'EVERYONE']), 'privacy_level', 'destinations.0.meta.privacy_level');
 });
 
+test('api and mcp schedule TikTok video drafts without Direct Post metadata and preserve mode on update', function () {
+    Queue::fake();
+    $account = netParityAccount(Platform::TikTok);
+    $payload = netParityPayload($account, ContentType::TikTokVideo, ['media' => [netParityVideo()]], ['posting_mode' => 'draft_upload']);
+
+    [$apiPost, $mcpPost] = netParityAccepted($payload);
+
+    expect($apiPost->meta)->toBe(['posting_mode' => 'draft_upload']);
+    netParityApi()->putJson(route('api.posts.update', $apiPost), ['content' => 'Caption for TikTok'])->assertOk()->assertJsonPath('meta.posting_mode', 'draft_upload');
+    TryPostServer::actingAs($this->user)->tool(UpdatePostTool::class, ['post_id' => $mcpPost->id, 'content' => 'Caption for TikTok'])->assertOk();
+    expect($apiPost->fresh()->meta)->toBe($mcpPost->fresh()->meta);
+});
+
+test('api and mcp refuse draft upload mode on photos', function () {
+    $account = netParityAccount(Platform::TikTok);
+    $payload = netParityPayload($account, ContentType::TikTokPhoto, ['media' => [netParityImage()]], ['posting_mode' => 'draft_upload']);
+
+    netParityRefused($payload, __('posts.form.tiktok.draft_video_required'), 'destinations.0.meta.posting_mode');
+});
+
+test('api and mcp reject an unknown TikTok posting mode', function () {
+    $account = netParityAccount(Platform::TikTok);
+    $payload = netParityPayload($account, ContentType::TikTokVideo, ['status' => 'draft', 'media' => [netParityVideo()]], ['posting_mode' => 'automatic']);
+
+    netParityApi()->postJson(route('api.posts.batch.store'), $payload)->assertUnprocessable()->assertJsonValidationErrors('destinations.0.meta.posting_mode');
+    TryPostServer::actingAs($this->user)->tool(CreatePostsTool::class, $payload)->assertHasErrors();
+    expect(netParityPostCount())->toBe(0);
+});
+
+test('api and mcp cannot send a draft to another workspace channel', function () {
+    $account = SocialAccount::factory()->tiktok()->create();
+    $payload = netParityPayload($account, ContentType::TikTokVideo, ['status' => 'draft'], ['posting_mode' => 'draft_upload']);
+
+    netParityApi()->postJson(route('api.posts.batch.store'), $payload)->assertUnprocessable()->assertJsonValidationErrors('destinations.0.social_account_id');
+    TryPostServer::actingAs($this->user)->tool(CreatePostsTool::class, $payload)->assertHasErrors();
+    expect(netParityPostCount())->toBe(0);
+});
+
 test('tiktok private posts cannot be branded content through api and mcp', function () {
     $account = netParityAccount(Platform::TikTok);
     $meta = ['privacy_level' => 'SELF_ONLY', 'brand_content_toggle' => true];
